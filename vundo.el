@@ -585,7 +585,8 @@ If INCREMENTAL non-nil, reuse some date."
                (vundo--get-tree-part 'selected-node))
   (move-overlay vundo-highlight-overlay
                 (1- (vundo-m-point node))
-                (vundo-m-point node)))
+                (vundo-m-point node))
+  (goto-char (1- (vundo-m-point node))))
 
 ;;;###autoload
 (defun vundo ()
