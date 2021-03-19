@@ -118,7 +118,9 @@
 
 (defvar vundo--symbols)
 
-(defcustom vundo-use-symbol 'unicode
+(defcustom vundo-use-symbol (if (display-graphic-p)
+				'unicode
+			      'ascii)
   "What kind of symbols to use to draw the tree."
   :set (lambda (sym val)
          (setq vundo--symbols
