@@ -594,7 +594,10 @@ Do sanity check, then evaluate BODY."
      (when (not (derived-mode-p 'vundo--mode))
        (user-error "Not in vundo buffer"))
      (when (not (buffer-live-p vundo--orig-buffer))
-       (user-error "Original buffer is gone"))
+       (when (y-or-n-p "Original buffer is gone, kill vundo buffer? ")
+         (kill-buffer-and-window))
+       ;; Non-local exit.
+       (user-error ""))
      ;; If ORIG-BUFFER changed since we last synced the vundo buffer
      ;; (e.g., user left vundo buffer and did some edit in ORIG-BUFFER
      ;; then comes back), refresh to catch up.
