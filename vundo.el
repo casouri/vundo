@@ -386,13 +386,14 @@ Translate according to `vundo-translation-alist'."
                 (delete-char 3))
               ;; Insert the new node.
               (if (eq (point) planned-point)
-                  (insert (vundo--translate "──○"))
+                  (progn (insert (vundo--translate "──○"))
+                         (vundo--put-face -3 -1 'vundo-stem))
                 ;; Delete the previously inserted |.
                 (delete-char -1)
                 (if node-last-child-p
                     (insert (vundo--translate "└──○"))
-                  (insert (vundo--translate "├──○"))))
-              (vundo--put-face -4 -1 'vundo-stem)
+                  (insert (vundo--translate "├──○")))
+                (vundo--put-face -4 -1 'vundo-stem))
               (vundo--put-face -1 0 'vundo-node))))
         ;; Store point so we can later come back to this node.
         (setf (vundo-m-point node) (point))
