@@ -98,6 +98,11 @@
   "The maximum height of the vundo window."
   :type 'integer)
 
+(defcustom vundo-side 'bottom
+  "The vundo window side."
+  :type '(choice (const :tag "Bottom" bottom)
+                 (const :tag "Top"    top)))
+
 (defvar vundo-translation-alist nil
   "An alist mapping text to their translations.
 E.g., mapping ○ to o, ● to *. Keys and values must be characters,
@@ -563,7 +568,7 @@ Highlight if ARG >= 0, de-highlight if ARG < 0."
     (select-window
      (display-buffer-in-side-window
       vundo-buf
-      '((side . bottom)
+      `((side . ,vundo-side)
         (window-height . 3))))
     (set-window-dedicated-p nil t)
     (let ((window-min-height 3))
