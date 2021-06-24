@@ -68,7 +68,7 @@ Tests backward/forward, previous/next, undo list trimming."
 
    (with-current-buffer (vundo-1 (current-buffer))
      (should (equal (vundo-test--buf-str-np)
-                    "○──○\n└──○"))
+                    "○──○\n└──○\n"))
      (should (eq (vundo-test--current-idx) 3))
 
      (vundo-next 1)
@@ -137,7 +137,7 @@ Sans ending newline."
 
    (with-current-buffer (vundo-1 (current-buffer))
      (should (equal (vundo-test--buf-str-np)
-                    (vundo--test-file "test-2.txt")))
+                    (vundo--file-content "test-2.txt")))
      (should (eq (vundo-test--last-idx) 200))
 
      (vundo-backward 50)
@@ -174,7 +174,7 @@ Sans ending newline."
    ;; The regional undo should create a new node.
    (with-current-buffer (vundo-1 (current-buffer))
      (should (equal (vundo-test--buf-str-np)
-                    "○──○──○──○──○──○──○"))
+                    "○──○──○──○──○──○──○\n"))
      (vundo-backward 1))
    (should (equal (vundo-test--buf-str-np) "abcde"))
 

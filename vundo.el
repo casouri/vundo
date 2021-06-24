@@ -321,8 +321,8 @@ If a line is not COL columns long, skip that line."
                        (< (point) (or until (point-max)))))))))
 
 (defun vundo--put-node-at-point (node)
-  "Store the corresponding NODE as text property at point."
-  (put-text-property (1- (point)) (point)
+  "Turn the character before point into a button for NODE."
+  (make-text-button (1- (point)) (point) :type 'vundo-node
                      'vundo-node
                      node))
 
@@ -405,7 +405,9 @@ Translate according to `vundo-translation-alist'."
         ;; Associate the text node in buffer with the node object.
         (vundo--put-node-at-point node)
         ;; Depth-first search.
-        (setq node-queue (append children node-queue))))))
+        (setq node-queue (append children node-queue))))
+    (goto-char (point-max))
+    (unless (bolp) (insert "\n"))))
 
 ;;; Vundo buffer and invocation
 
@@ -635,6 +637,23 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
       vundo--roll-back-to-this
       vundo--orig-buffer vundo--prev-mod-list))
    (kill-buffer-and-window)))
+
+(define-button-type 'vundo-node
+  'follow-link t
+  'help-echo "Go to this node."
+  'mouse-action (lambda (button)
+                  (vundo--check-for-command
+                   (let ((current
+                          (vundo--current-node vundo--prev-mod-list))
+                         (dest (button-get button 'vundo-node)))
+                     (when (eq current dest)
+                       (user-error "Already there"))
+                     (vundo--move-to-node
+                      current dest
+                      vundo--orig-buffer vundo--prev-mod-list))
+                   (vundo--refresh-buffer
+                    vundo--orig-buffer (current-buffer)
+                    'incremental))))
 
 ;;; Traverse undo tree
 
