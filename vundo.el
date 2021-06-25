@@ -805,11 +805,10 @@ If ARG < 0, move forward."
      (when parent
        (let* ((siblings (vundo-m-children parent))
               (idx (seq-position siblings source))
-              (new-idx (+ idx arg))
-              ;; TODO: Move as far as possible instead of not
-              ;; moving when ARG is too large.
+              (new-idx (max 0 (min (+ idx arg)
+                                   (1- (length siblings)))))
               (dest (nth new-idx siblings)))
-         (when (and dest (not (eq source dest)))
+         (when (not (eq source dest))
            (vundo--move-to-node
             source dest vundo--orig-buffer vundo--prev-mod-list)
            (vundo--refresh-buffer
