@@ -16,3 +16,7 @@ If you bring up the vundo buffer and make some modification in the
 original buffer, the tree in the vundo buffer doesn’t automatically
 update. Vundo catches up the next time you invoke any command:
 instead of performing that command, it updates the tree.
+
+# dependencies
+
+vundo needs emacs 28 to work.
