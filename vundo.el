@@ -634,6 +634,9 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
       (vundo--current-node vundo--prev-mod-list)
       vundo--roll-back-to-this
       vundo--orig-buffer vundo--prev-mod-list))
+   (with-current-buffer vundo--orig-buffer
+     (setq-local inhibit-modification-hooks nil
+                 buffer-read-only nil))
    (kill-buffer-and-window)))
 
 ;;; Traverse undo tree
@@ -714,6 +717,8 @@ after calling this function."
                             undo-list-at-source undo-list-at-dest))
              trimmed)
         (with-current-buffer orig-buffer
+          (setq-local inhibit-modification-hooks t
+                      buffer-read-only t)
           ;; 2. Undo. This will undo modifications in PLANNED-UNDO and
           ;; add new entries to ‘buffer-undo-list’.
           (let ((undo-in-progress t))
