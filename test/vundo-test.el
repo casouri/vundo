@@ -111,9 +111,10 @@ Sans ending newline."
 
 (defun vundo-test--insert (&rest strings)
   "Insert STRINGS, delimit them with (undo-boundary)."
-  (dolist (str strings)
-    (insert str)
-    (undo-boundary)))
+  (let ((inhibit-read-only t))
+    (dolist (str strings)
+      (insert str)
+      (undo-boundary))))
 
 (defun vundo-test--exec (cmds)
   "Run commands in CMDS like interactive commands."
@@ -196,7 +197,8 @@ Sans ending newline."
   "This tests large buffers."
   (vundo-test--setup
    (let ((undo-limit most-positive-fixnum)
-         (undo-strong-limit most-positive-fixnum))
+         (undo-strong-limit most-positive-fixnum)
+         (inhibit-read-only t))
      (dotimes (_1 100)
        (dotimes (_2 5000)
          ;; Not DRY, but I like to write it.
