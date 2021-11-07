@@ -435,7 +435,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "e") #'vundo-stem-end)
     (define-key map (kbd "q") #'vundo-quit)
     (define-key map (kbd "C-g") #'vundo-quit)
-    (define-key map (kbd "RET") #'kill-buffer-and-window)
+    (define-key map (kbd "RET") #'vundo-confirm)
     (define-key map (kbd "i") #'vundo--inspect)
     (define-key map (kbd "d") #'vundo--debug)
     map)
@@ -638,6 +638,14 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
      (setq-local inhibit-modification-hooks nil
                  buffer-read-only nil))
    (kill-buffer-and-window)))
+
+(defun vundo-confirm ()
+  "Confirm change and close vundo window."
+  (interactive)
+  (with-current-buffer vundo--orig-buffer
+    (setq-local inhibit-modification-hooks nil
+                buffer-read-only nil))
+  (kill-buffer-and-window))
 
 ;;; Traverse undo tree
 
