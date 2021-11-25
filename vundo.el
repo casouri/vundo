@@ -103,28 +103,30 @@
   :type '(choice (const :tag "Bottom" bottom)
                  (const :tag "Top"    top)))
 
-(defvar vundo-translation-alist nil
-  "An alist mapping text to their translations.
-E.g., mapping ○ to o, ● to *. Keys and values must be characters,
-not strings.")
+(defconst vundo-ascii-symbols
+  '((selected-node . ?*)
+    (node . ?o)
+    (horizontal-stem . ?-)
+    (vertical-stem . ?|)
+    (branch . ?|)
+    (last-branch . ?+))
+  "ASCII symbols to draw vundo tree.")
 
-;;;###autoload
-(define-minor-mode vundo-ascii-mode
-  "Display the undo tree with ASCII characters."
-  :global t
-  (if vundo-ascii-mode
-      (progn
-        (put 'vundo-translation-alist 'before-ascii
-             vundo-translation-alist)
-        (setq vundo-translation-alist
-              '((?○ . ?o)
-                (?● . ?*)
-                (?─ . ?-)
-                (?│ . ?|)
-                (?├ . ?|)
-                (?└ . ?+))))
-    (setq vundo-translation-alist
-          (get 'vundo-translation-alist 'before-ascii))))
+(defconst vundo-unicode-symbols
+  '((selected-node . ?●)
+    (node . ?○)
+    (horizontal-stem . ?─)
+    (vertical-stem . ?│)
+    (branch . ?├)
+    (last-branch . ?└))
+  "Unicode symbols to draw vundo tree.")
+
+(defcustom vundo-symbol-alist vundo-unicode-symbols
+  "Alist mapping tree parts to characters used to draw a tree."
+  :type `(alist :tag "Translation alist"
+		:key-type (symbol :tag "Part of tree")
+		:value-type (character :tag "Draw using")
+		:options ,(mapcar #'car vundo-unicode-symbols)))
 
 ;;; Undo list to mod list
 
@@ -342,17 +344,40 @@ If a line is not COL columns long, skip that line."
     (let ((indent-tabs-mode nil))
       (indent-to-column col))))
 
-(defun vundo--translate (text)
-  "Translate each character in TEXT and return it.
-Translate according to `vundo-translation-alist'."
-  (seq-mapcat (lambda (c)
-                (char-to-string
-                 (alist-get c vundo-translation-alist c)))
-              text 'string))
+(defun vundo--get-tree-part (part)
+  "Get PART of tree at point."
+  (let ((selected-node (alist-get 'selected-node vundo-symbol-alist))
+        (node (alist-get 'node vundo-symbol-alist))
+        (horizontal-stem (alist-get 'horizontal-stem vundo-symbol-alist))
+        (vertical-stem (alist-get 'vertical-stem vundo-symbol-alist))
+        (branch (alist-get 'branch vundo-symbol-alist))
+        (last-branch (alist-get 'last-branch vundo-symbol-alist)))
+    (cl-case part
+      ((selected-node)
+       (propertize (string selected-node)
+                   'face 'vundo-node))
+      ((node)
+       (propertize (string node)
+                   'face 'vundo-node))
+      ((leaf)
+       (concat (propertize (string horizontal-stem horizontal-stem)
+                           'face 'vundo-stem)
+               (vundo--get-tree-part 'node)))
+      ((branch)
+       (concat (propertize (string branch)
+                           'face 'vundo-stem)
+               (vundo--get-tree-part 'leaf)))
+      ((last-branch)
+       (concat (propertize (string last-branch)
+                           'face 'vundo-stem)
+               (vundo--get-tree-part 'leaf)))
+      ((stem)
+       (propertize (string vertical-stem)
+                   'face 'vundo-stem)))))
 
-(defun vundo--put-face (beg end face)
-  "Add FACE to the text between (+ (point) BEG) and (+ (point) END)."
-  (put-text-property (+ (point) beg) (+ (point) end) 'face face))
+(defun vundo--insert-tree-part (part)
+  "Insert PART of tree at point."
+  (insert (vundo--get-tree-part part)))
 
 (defun vundo--draw-tree (mod-list)
   "Draw the tree in MOD-LIST in current buffer."
@@ -372,8 +397,7 @@ Translate according to `vundo-translation-alist'."
         (if parent (goto-char (vundo-m-point parent)))
         (let ((col (max 0 (1- (current-column)))))
           (if (null parent)
-              (progn (insert (vundo--translate "○"))
-                     (vundo--put-face -1 0 'vundo-node))
+              (vundo--insert-tree-part 'node)
             (let ((planned-point (point)))
               ;; If a node is blocking, try next line.
               ;; Example: 1--2--3  Here we want to add a
@@ -381,25 +405,20 @@ Translate according to `vundo-translation-alist'."
               ;;             +--4  by that plus sign.
               (while (not (looking-at (rx (or "    " eol))))
                 (vundo--next-line-at-column col)
-                (if (looking-at "$")
-                    (insert (vundo--translate "│"))
-                  (delete-char 1)
-                  (insert (vundo--translate "│")))
-                (vundo--put-face -1 0 'vundo-stem))
+                (unless (looking-at "$")
+                  (delete-char 1))
+                (vundo--insert-tree-part 'stem))
               ;; Make room for inserting the new node.
               (unless (looking-at "$")
                 (delete-char 3))
               ;; Insert the new node.
               (if (eq (point) planned-point)
-                  (progn (insert (vundo--translate "──○"))
-                         (vundo--put-face -3 -1 'vundo-stem))
+                  (vundo--insert-tree-part 'leaf)
                 ;; Delete the previously inserted |.
                 (delete-char -1)
                 (if node-last-child-p
-                    (insert (vundo--translate "└──○"))
-                  (insert (vundo--translate "├──○")))
-                (vundo--put-face -4 -1 'vundo-stem))
-              (vundo--put-face -1 0 'vundo-node))))
+                    (vundo--insert-tree-part 'last-branch)
+                  (vundo--insert-tree-part 'branch))))))
         ;; Store point so we can later come back to this node.
         (setf (vundo-m-point node) (point))
         ;; Associate the text node in buffer with the node object.
