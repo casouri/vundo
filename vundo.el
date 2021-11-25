@@ -518,11 +518,6 @@ If INCREMENTAL non-nil, reuse some date."
                              (vundo--latest-buffer-state
                               vundo--prev-mod-list)))
           (inhibit-read-only t))
-      ;; 1.5 De-highlight the current node before
-      ;; `vundo--prev-mod-list' changes.
-      (when vundo--prev-mod-list
-        (vundo--toggle-highlight
-         -1 (vundo--current-node vundo--prev-mod-list)))
       ;; 2. Here we consider two cases, adding more nodes (or starting
       ;; from scratch) or removing nodes. In both cases, we update and
       ;; set MOD-LIST and MOD-HASH. We don't need to worry about the
@@ -555,7 +550,7 @@ If INCREMENTAL non-nil, reuse some date."
                   latest-state)
         (vundo--draw-tree mod-list))
       ;; Highlight current node.
-      (vundo--toggle-highlight 1 (vundo--current-node mod-list))
+      (vundo--highlight-node (vundo--current-node mod-list))
       ;; Update cache.
       (setq vundo--prev-mod-list mod-list
             vundo--prev-mod-hash mod-hash
@@ -566,16 +561,20 @@ If INCREMENTAL non-nil, reuse some date."
   "Return the currently highlighted node in MOD-LIST."
   (car (vundo--eqv-list-of (car (last mod-list)))))
 
-(defun vundo--toggle-highlight (arg node)
-  "Toggle highlight of NODE.
-Highlight if ARG >= 0, de-highlight if ARG < 0."
-  (goto-char (vundo-m-point node))
-  (if (>= arg 0)
-      (add-text-properties (1- (point)) (point)
-                           (list 'display (vundo--translate "●")
-                                 'face 'vundo-highlight))
-    (add-text-properties (1- (point)) (point)
-                         (list 'display nil 'face 'vundo-node))))
+(defvar vundo-highlight-overlay
+  (let ((ov (make-overlay 0 1)))
+    (delete-overlay ov)
+    ov))
+
+(defun vundo--highlight-node (node)
+  "Highlight NODE as current node."
+  (overlay-put vundo-highlight-overlay
+               'display
+               (vundo--get-tree-part 'selected-node))
+  (move-overlay vundo-highlight-overlay
+                (1- (vundo-m-point node))
+                (vundo-m-point node))
+  (goto-char (1- (vundo-m-point node))))
 
 ;;;###autoload
 (defun vundo ()
