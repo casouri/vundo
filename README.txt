@@ -16,3 +16,10 @@ If you bring up the vundo buffer and make some modification in the
 original buffer, the tree in the vundo buffer doesn’t automatically
 update. Vundo catches up the next time you invoke any command:
 instead of performing that command, it updates the tree.
+
+Note: vundo.el requires Emacs 28.
+
+Changelog:
+
+<2021-11-26 Fri>: Variable vundo-translate-alist changed to
+vundo-glyph=alist and has different value now.
