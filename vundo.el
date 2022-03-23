@@ -104,12 +104,12 @@
                  (const :tag "Top"    top)))
 
 (defconst vundo-ascii-symbols
-  '((selected-node . ?*)
+  '((selected-node . ?x)
     (node . ?o)
     (horizontal-stem . ?-)
     (vertical-stem . ?|)
     (branch . ?|)
-    (last-branch . ?+))
+    (last-branch . ?`))
   "ASCII symbols to draw vundo tree.")
 
 (defconst vundo-unicode-symbols
@@ -121,7 +121,7 @@
     (last-branch . ?└))
   "Unicode symbols to draw vundo tree.")
 
-(defcustom vundo-glyph-alist vundo-unicode-symbols
+(defcustom vundo-glyph-alist vundo-ascii-symbols
   "Alist mapping tree parts to characters used to draw a tree.
 Keys are names for different parts of a tree, values are
 characters for that part. Possible keys include
@@ -138,7 +138,17 @@ in a tree like
     ○──○──○
     │  └──●
     ├──○
-    └──○"
+    └──○
+
+By default, the tree is drawn with ASCII characters like this:
+
+    o--o--o
+    |  `--x
+    |--o
+    `--o
+
+Set this variable to ‘vundo-unicode-symbols’ to use Unicode
+characters."
   :type `(alist :tag "Translation alist"
 		        :key-type (symbol :tag "Part of tree")
 		        :value-type (character :tag "Draw using")
