@@ -21,5 +21,13 @@ Note: vundo.el requires Emacs 28.
 
 Changelog:
 
+<2022-03-23 Wed>: UI now defaults to ASCII mode. ASCII mode also draws
+differently now, it now draws
+
+    o--o--o     instead of      o--o--o
+    |  `--x                     |  +--*
+    |--o                        |--o
+    `--o                        +--o
+
 <2021-11-26 Fri>: Variable vundo-translate-alist changed to
 vundo-glyph=alist and has different value now.
