@@ -19,6 +19,31 @@ instead of performing that command, it updates the tree.
 
 Note: vundo.el requires Emacs 28.
 
+Faces:
+
+- vundo-default
+- vundo-node
+- vundo-stem
+- vundo-highlight
+
+If you want to use prettier Unicode characters to draw the tree, like this:
+
+    ○──○──○
+    │  └──●
+    ├──○
+    └──○
+
+set vundo-glyph-alist by
+
+    (setq vundo-glyph-alist vundo-unicode-symbols)
+
+Your default font needs to contain these Unicode characters, otherwise
+they look terrible and don’t align. You can find a font that covers
+these characters (eg, Symbola, Unifont), and set ‘vundo-default’ face
+to use that font:
+
+    (set-face-attribute 'vundo-default nil :family "Symbola")
+
 Changelog:
 
 <2022-03-23 Wed>: UI now defaults to ASCII mode. ASCII mode also draws
