@@ -78,16 +78,20 @@
   "Visual undo tree."
   :group 'undo)
 
-(defface vundo-default '((t . (:inherit 'default)))
+(defface vundo-default '((t . (:inherit default)))
   "Default face used in vundo buffer.")
 
-(defface vundo-node '((t . (:inherit 'vundo-default)))
+(defface vundo-node '((t . (:inherit vundo-default)))
   "Face for nodes in the undo tree.")
 
-(defface vundo-stem '((t . (:inherit 'vundo-default)))
+(defface vundo-stem '((t . (:inherit vundo-default)))
   "Face for stems between nodes in the undo tree.")
 
-(defface vundo-highlight '((t . (:inherit 'vundo-node)))
+(defface vundo-highlight
+  '((((background light)) .
+     (:inherit vundo-node :weight bold :foreground "red"))
+    (((background dark)) .
+     (:inherit vundo-node :weight bold :foreground "yellow")))
   "Face for the highlighted node in the undo tree.")
 
 (defcustom vundo-roll-back-on-quit t
