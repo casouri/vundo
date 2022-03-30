@@ -697,9 +697,14 @@ Do sanity check, then evaluate BODY."
      ;; (e.g., user left vundo buffer and did some edit in ORIG-BUFFER
      ;; then comes back), refresh to catch up.
      (let ((undo-list (buffer-local-value
-                       'buffer-undo-list vundo--orig-buffer)))
+                       'buffer-undo-list vundo--orig-buffer))
+           ;; Quit while manipulating undo data may leave emacs in an
+           ;; invalid state, instead - code in this body
+           ;; is responsible for early-exit on user quit request.
+           (inhibit-quit t))
        ;; 1. Refresh if the beginning is not the same.
-       (cond ((not (eq (vundo--sans-nil undo-list)
+       (cond (quit-flag) ;; Don't enter the body on user-quit.
+             ((not (eq (vundo--sans-nil undo-list)
                        (vundo--sans-nil vundo--prev-undo-list)))
               (vundo--refresh-buffer vundo--orig-buffer (current-buffer))
               (message "Refresh"))
@@ -819,7 +824,12 @@ after calling this function."
             (cl-loop
              for step = (- source-idx dest-idx)
              then (1- step)
-             while (> step 0)
+             while (and (> step 0)
+                        ;; The user may request to quit while this runs
+                        ;; by pressing `keyboard-quit'. Exit gracefully
+                        ;; instead of leaving the buffer in an unknown
+                        ;; state.
+                        (not quit-flag))
              for stop = (1- source-idx) then (1- stop)
              do
              (progn
