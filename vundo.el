@@ -474,7 +474,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
       (with-selected-window window
         (kill-buffer-and-window))))
 
-(defvar vundo--mode-map
+(defvar vundo-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "f") #'vundo-forward)
     (define-key map (kbd "<right>") #'vundo-forward)
@@ -492,9 +492,9 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "i") #'vundo--inspect)
     (define-key map (kbd "d") #'vundo--debug)
     map)
-  "Keymap for ‘vundo--mode’.")
+  "Keymap for ‘vundo-mode’.")
 
-(define-derived-mode vundo--mode special-mode
+(define-derived-mode vundo-mode special-mode
   "Vundo" "Mode for displaying the undo tree."
   (setq mode-line-format nil
         truncate-lines t
@@ -641,8 +641,8 @@ BUFFER must have a valid `buffer-undo-list'."
       (with-current-buffer vundo-buf
         ;; Enable major mode before refreshing the buffer.
         ;; Because major modes kill local variables.
-        (unless (derived-mode-p 'vundo--mode)
-          (vundo--mode))
+        (unless (derived-mode-p 'vundo-mode)
+          (vundo-mode))
         (vundo--refresh-buffer orig-buf vundo-buf)
         vundo-buf))))
 
@@ -650,7 +650,7 @@ BUFFER must have a valid `buffer-undo-list'."
   "Sanity check before running interactive commands.
 Do sanity check, then evaluate BODY."
   `(progn
-     (when (not (derived-mode-p 'vundo--mode))
+     (when (not (derived-mode-p 'vundo-mode))
        (user-error "Not in vundo buffer"))
      (when (not (buffer-live-p vundo--orig-buffer))
        (when (y-or-n-p "Original buffer is gone, kill vundo buffer? ")
