@@ -46,6 +46,9 @@ to use that font:
 
 Changelog:
 
+<2022-03-29 Tue> vundo--mode and vundo--mode-map are now vundo-mode
+and vundo-mode-map. A new custom option vundo-compact-display is added.
+
 <2022-03-23 Wed>: UI now defaults to ASCII mode. ASCII mode also draws
 differently now, it now draws
 
@@ -55,4 +58,4 @@ differently now, it now draws
     `--o                        +--o
 
 <2021-11-26 Fri>: Variable vundo-translate-alist changed to
-vundo-glyph=alist and has different value now.
+vundo-glyph-alist and has different value now.
