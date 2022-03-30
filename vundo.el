@@ -125,6 +125,11 @@
     (last-branch . ?└))
   "Unicode symbols to draw vundo tree.")
 
+(defcustom vundo-compact-display nil
+  "Only show a single horizontal stem character for more compact display.
+Otherwise two characters are used."
+  :type 'boolean)
+
 (defcustom vundo-glyph-alist vundo-ascii-symbols
   "Alist mapping tree parts to characters used to draw a tree.
 Keys are names for different parts of a tree, values are
@@ -423,17 +428,20 @@ Translate according to ‘vundo-glyph-alist’."
                                     'face 'vundo-stem)))
               ;; Make room for inserting the new node.
               (unless (looking-at "$")
-                (delete-char 3))
+                (delete-char (if vundo-compact-display 2 3)))
               ;; Insert the new node.
               (if (eq (point) planned-point)
-                  (insert (propertize (vundo--translate "──")
+                  (insert (propertize (vundo--translate
+                                       (if vundo-compact-display "─" "──"))
                                       'face 'vundo-stem)
                           (propertize (vundo--translate "○")
                                       'face 'vundo-node))
                 ;; Delete the previously inserted |.
                 (delete-char -1)
                 (insert (propertize (vundo--translate
-                                     (if node-last-child-p "└──" "├──"))
+                                     (if node-last-child-p
+                                         (if vundo-compact-display "└─" "└──")
+                                       (if vundo-compact-display "├─" "├──")))
                                     'face 'vundo-stem))
                 (insert (propertize (vundo--translate "○")
                                     'face 'vundo-node))))))
