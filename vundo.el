@@ -900,8 +900,10 @@ If ARG < 0, move forward."
   "Move to the beginning of the current stem."
   (interactive)
   (vundo--check-for-command
-   (let* ((this (vundo--current-node vundo--prev-mod-list))
-          (next (vundo-m-parent this)))
+   (when-let* ((this (vundo--current-node vundo--prev-mod-list))
+               (next (vundo-m-parent this)))
+     ;; If NEXT is nil, ie, this node doesn’t have a parent, do
+     ;; nothing.
      (vundo--move-to-node
       this next vundo--orig-buffer vundo--prev-mod-list)
      (setq this next
@@ -919,8 +921,10 @@ If ARG < 0, move forward."
   "Move to the end of the current stem."
   (interactive)
   (vundo--check-for-command
-   (let* ((this (vundo--current-node vundo--prev-mod-list))
-          (next (car (vundo-m-children this))))
+   (when-let* ((this (vundo--current-node vundo--prev-mod-list))
+               (next (car (vundo-m-children this))))
+     ;; If NEXT is nil, ie, this node doesn’t have a child, do
+     ;; nothing.
      (vundo--move-to-node
       this next vundo--orig-buffer vundo--prev-mod-list)
      (setq this next
