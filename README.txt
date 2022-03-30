@@ -26,7 +26,8 @@ Faces:
 - vundo-stem
 - vundo-highlight
 
-If you want to use prettier Unicode characters to draw the tree, like this:
+If you want to use prettier Unicode characters to draw the tree like
+this:
 
     ○──○──○
     │  └──●

@@ -132,8 +132,7 @@ Basically we display
     ○─○─○  instead of  ○──○──○
     │ └─●              │  └──●
     ├─○                ├──○
-    └─○                └──○
-"
+    └─○                └──○"
   :type 'boolean)
 
 (defcustom vundo-glyph-alist vundo-ascii-symbols
@@ -341,8 +340,8 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
                        ;; We sort in reverse order, i.e., later mod
                        ;; comes first. Later in `vundo--build-tree' we
                        ;; draw the tree depth-first.
-                       (vundo--sort-mod (cons mod children) 'reverse))
-                 ))))))))
+                       (vundo--sort-mod (cons mod children)
+                                        'reverse))))))))))
 
 ;;; Draw tree
 
