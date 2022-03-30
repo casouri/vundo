@@ -936,43 +936,46 @@ If ARG < 0, move forward."
   "Move to the beginning of the current stem."
   (interactive)
   (vundo--check-for-command
-   (when-let* ((this (vundo--current-node vundo--prev-mod-list))
-               (next (vundo-m-parent this)))
-     ;; If NEXT is nil, ie, this node doesn’t have a parent, do
-     ;; nothing.
-     (vundo--move-to-node
-      this next vundo--orig-buffer vundo--prev-mod-list)
-     (setq this next
-           next (vundo-m-parent this))
-     (while (and next (not (vundo--stem-root-p this)))
+   (let* ((this (vundo--current-node vundo--prev-mod-list))
+          (next (vundo-m-parent this)))
+     ;; If NEXT is nil, ie, this node doesn’t have a parent, do nothing.
+     (if (null next)
+         (message "vundo: already at root")
+
        (vundo--move-to-node
         this next vundo--orig-buffer vundo--prev-mod-list)
        (setq this next
-             next (vundo-m-parent this)))
-     (vundo--refresh-buffer
-      vundo--orig-buffer (current-buffer)
-      'incremental))))
+             next (vundo-m-parent this))
+       (while (and next (not (vundo--stem-root-p this)))
+         (vundo--move-to-node
+          this next vundo--orig-buffer vundo--prev-mod-list)
+         (setq this next
+               next (vundo-m-parent this)))
+       (vundo--refresh-buffer
+        vundo--orig-buffer (current-buffer)
+        'incremental)))))
 
 (defun vundo-stem-end ()
   "Move to the end of the current stem."
   (interactive)
   (vundo--check-for-command
-   (when-let* ((this (vundo--current-node vundo--prev-mod-list))
-               (next (car (vundo-m-children this))))
-     ;; If NEXT is nil, ie, this node doesn’t have a child, do
-     ;; nothing.
-     (vundo--move-to-node
-      this next vundo--orig-buffer vundo--prev-mod-list)
-     (setq this next
-           next (car (vundo-m-children this)))
-     (while (and next (not (vundo--stem-end-p this)))
+   (let* ((this (vundo--current-node vundo--prev-mod-list))
+          (next (car (vundo-m-children this))))
+     ;; If NEXT is nil, ie, this node doesn’t have a child, do nothing.
+     (if (null next)
+         (message "vundo: already at end")
        (vundo--move-to-node
         this next vundo--orig-buffer vundo--prev-mod-list)
        (setq this next
-             next (car (vundo-m-children this))))
-     (vundo--refresh-buffer
-      vundo--orig-buffer (current-buffer)
-      'incremental))))
+             next (car (vundo-m-children this)))
+       (while (and next (not (vundo--stem-end-p this)))
+         (vundo--move-to-node
+          this next vundo--orig-buffer vundo--prev-mod-list)
+         (setq this next
+               next (car (vundo-m-children this))))
+       (vundo--refresh-buffer
+        vundo--orig-buffer (current-buffer)
+        'incremental)))))
 
 ;;; Debug
 
