@@ -569,7 +569,11 @@ Keep the first N modifications."
 (defun vundo--refresh-buffer
     (orig-buffer vundo-buffer &optional incremental)
   "Refresh VUNDO-BUFFER with the undo history of ORIG-BUFFER.
-If INCREMENTAL non-nil, reuse some date."
+If INCREMENTAL non-nil, reuse some date.
+
+This function modifies ‘vundo--prev-mod-list’,
+‘vundo--prev-mod-hash’, ‘vundo--prev-undo-list’,
+‘vundo--orig-buffer’."
   (with-current-buffer vundo-buffer
     ;; 1. Setting these to nil makes `vundo--mod-list-from',
     ;; `vundo--update-mapping' and `vundo--build-tree' starts from
@@ -795,7 +799,10 @@ Basically, return the latest non-undo modification in MOD-LIST."
   "Move from CURRENT node to DEST node by undoing in ORIG-BUFFER.
 ORIG-BUFFER must be at CURRENT state. MOD-LIST is the list you
 get from ‘vundo--mod-list-from’. You should refresh vundo buffer
-after calling this function."
+after calling this function.
+
+This function modifies the content of ORIG-BUFFER and its
+‘buffer-undo-list’."
   (cl-assert (not (eq current dest)))
   ;; 1. Find the route we want to take.
   (if-let* ((route (vundo--calculate-shortest-route current dest)))
@@ -810,6 +817,8 @@ after calling this function."
              ;; We will undo these modifications.
              (planned-undo (vundo--list-subtract
                             undo-list-at-source undo-list-at-dest))
+             ;; We don’t want to quit in the middle of this function.
+             (inhibit-quit t)
              trimmed)
         (with-current-buffer orig-buffer
           (setq-local buffer-read-only t)
@@ -819,7 +828,11 @@ after calling this function."
             (cl-loop
              for step = (- source-idx dest-idx)
              then (1- step)
-             while (> step 0)
+             while (and (> step 0)
+                        ;; If there is a quit signal, we break the
+                        ;; loop, continue to step 3 and 4, then quits
+                        ;; when we go out of the let-form.
+                        (not quit-flag))
              for stop = (1- source-idx) then (1- stop)
              do
              (progn
@@ -867,7 +880,7 @@ after calling this function."
 
 (defun vundo-forward (arg)
   "Move forward ARG nodes in the undo tree.
-If ARG < 0, move backward"
+If ARG < 0, move backward."
   (interactive "p")
   (vundo--check-for-command
    (let ((step (abs arg)))
