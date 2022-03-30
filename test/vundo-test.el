@@ -52,7 +52,7 @@
   "Setup and evaluate BODY."
   `(with-temp-buffer
      (buffer-enable-undo)
-     (let ((vundo-translation-alist nil))
+     (let ((vundo-glyph-alist vundo-unicode-symbols))
        ,@body)))
 
 (ert-deftest vundo-test--1 ()
