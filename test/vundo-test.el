@@ -48,6 +48,12 @@
     (should (not (vundo--position-only-p (nthcdr 2 ul2))))
     (should (vundo--position-only-p (nthcdr 5 ul2)))))
 
+(ert-deftest vundo-test--skip-position-only ()
+  "Tests for skipping position-only records."
+  (let* ((ul2 '(stuff nil 9 nil 8 stuff nil 7 nil)))
+    (should (equal (length (vundo--mod-list-from ul2))
+                   3))))
+
 (defsubst vundo-test--buf-str-np ()
   "(buffer-substring-no-properties (point-min) (point-max))."
   (buffer-substring-no-properties
