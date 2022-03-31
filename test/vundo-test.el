@@ -35,6 +35,19 @@
       (should (equal (mapcar #'vundo-m-idx ml9)
                      '(0 1 2 3))))))
 
+(ert-deftest vundo-test--position-only-p ()
+  "Tests for ‘vundo--position-only-p’."
+  (let* ((ul1 '(9 nil 8 nil 7 nil))
+         (ul2 '(9 nil 8 stuff nil 7 nil)))
+    (should (vundo--position-only-p ul1))
+    (should (vundo--position-only-p (nthcdr 2 ul1)))
+    (should (vundo--position-only-p (nthcdr 4 ul1)))
+    (should (vundo--position-only-p (last ul1)))
+
+    (should (vundo--position-only-p ul2))
+    (should (not (vundo--position-only-p (nthcdr 2 ul2))))
+    (should (vundo--position-only-p (nthcdr 5 ul2)))))
+
 (defsubst vundo-test--buf-str-np ()
   "(buffer-substring-no-properties (point-min) (point-max))."
   (buffer-substring-no-properties
