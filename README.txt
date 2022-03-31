@@ -64,9 +64,8 @@ vundo-glyph-alist and has different value now.
 
 Comparing to undo-tree:
 
-I don’t think vundo has any real advantage over undo-tree. On the
-contrary, undo-tree has much more features like diff, etc. (And vundo
-most probably will not add these features.) Vundo is really just a
-code challenge (can we construct an undo tree from linear history)
-came true. One thing I like about vundo is that it lays out the undo
-tree horizontally instead of horizontally.
+Unlike undo-tree vundo uses emacs built-in undo system so it doesn't
+require using an alternative undo-system. Further, vundo is simpler
+without as many features such as diffing for e.g. (And vundo most
+probably will not add more advanced features.) Another difference is
+vundo lays out the undo tree horizontally instead of vertically.
