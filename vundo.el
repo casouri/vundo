@@ -29,7 +29,7 @@
 ;;; Developer:
 ;;
 ;; In the comments, when I say node, modification, mod, buffer state,
-;; they all mean one thing: `vundo-m'. I.e., `vundo-m' represents
+;; they all mean one thing: `vundo-m'. Ie, `vundo-m' represents
 ;; multiple things at once: it represents an modification recorded in
 ;; `buffer-undo-list', it represents the state of the buffer after
 ;; that modification took place, and it represents the node in the
@@ -374,7 +374,7 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
                  ;; this.
                  (cl-assert (not (memq mod children)))
                  (setf (vundo-m-children min-eqv-mod)
-                       ;; We sort in reverse order, i.e., later mod
+                       ;; We sort in reverse order, ie, later mod
                        ;; comes first. Later in `vundo--build-tree' we
                        ;; draw the tree depth-first.
                        (vundo--sort-mod (cons mod children)
@@ -698,7 +698,7 @@ Do sanity check, then evaluate BODY."
        ;; Non-local exit.
        (user-error ""))
      ;; If ORIG-BUFFER changed since we last synced the vundo buffer
-     ;; (e.g., user left vundo buffer and did some edit in ORIG-BUFFER
+     ;; (eg, user left vundo buffer and did some edit in ORIG-BUFFER
      ;; then comes back), refresh to catch up.
      (let ((undo-list (buffer-local-value
                        'buffer-undo-list vundo--orig-buffer)))
@@ -744,7 +744,7 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
   "Calculate the shortest route from FROM to TO node.
 Return (SOURCE STOP1 STOP2 ... DEST), meaning you should undo the
 modifications from DEST to SOURCE. Each STOP is an intermediate
-stop. E.g., (6 5 4 3). Return nil if no valid route."
+stop. Eg, (6 5 4 3). Return nil if no valid route."
   (let (route-list)
     ;; Find all valid routes.
     (dolist (source (vundo--eqv-list-of from))
@@ -758,7 +758,7 @@ stop. E.g., (6 5 4 3). Return nil if no valid route."
     (setq route-list
           (seq-sort
            (lambda (r1 r2)
-             ;; I.e., distance between SOURCE and DEST in R1 compare
+             ;; Ie, distance between SOURCE and DEST in R1 compare
              ;; against distance in R2.
              (< (- (car r1) (cdr r1)) (- (car r2) (cdr r2))))
            route-list))
@@ -936,7 +936,7 @@ If ARG < 0, move forward."
 
 (defun vundo--stem-root-p (node)
   "Return non-nil if NODE is the root of a stem."
-  ;; I.e., parent has more than one children.
+  ;; Ie, parent has more than one children.
   (> (length (vundo-m-children (vundo-m-parent node))) 1))
 
 (defun vundo--stem-end-p (node)
