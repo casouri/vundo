@@ -15,9 +15,9 @@
 
 (ert-deftest vundo-test--mod-list ()
   "Tests for mod-list generation and incremental extension."
-  (let* ((ul3 '(3 2 1))
-         (ul6 (append '(6 5 4 nil) ul3))
-         (ul9 (append '(9 8 7 nil) ul6))
+  (let* ((ul3 '(m3 m2 m1))
+         (ul6 (append '(m6 m5 m4 nil) ul3))
+         (ul9 (append '(m9 m8 m7 nil) ul6))
          (ml6 (vundo--mod-list-from ul6 7 nil))
          (ml9 (vundo--mod-list-from ul9 4 ml6)))
     (should (equal (mapcar #'vundo-m-undo-list ml6)
