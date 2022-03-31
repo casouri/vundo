@@ -223,44 +223,51 @@ modification."
    :type integer
    :documentation "Marks the text node in the vundo buffer if drawn."))
 
-(defsubst vundo--position-only-p (idx undo-list)
-  "Check if the records at IDX in UNDO-LIST is position-only.
-Position-only means all records from IDX to the next undo
+(defun vundo--position-only-p (undo-list)
+  "Check if the records at the start of UNDO-LIST are position-only.
+Position-only means all records until to the next undo
 boundary are position records. Position record is just an
-integer (see ‘buffer-undo-list’). Assumes the beginning of the
-UNDO-LIST is not nil."
-  (catch 'ret
-    (while (nth idx undo-list)
-      (when (not (integerp (nth idx undo-list)))
-        (throw 'ret nil))
-      (cl-incf idx))
-    t))
+integer (see ‘buffer-undo-list’). Assumes the first element
+of UNDO-LIST is not nil."
+  (let ((pos-only t))
+    (while undo-list
+      (when (not (integerp (pop undo-list)))
+        (setq pos-only nil)
+        (setq undo-list nil)))
+    pos-only))
 
 (defun vundo--mod-list-from (undo-list &optional n mod-list)
   "Generate and return a modification list from UNDO-LIST.
 If N non-nil, only look at the first N entries in UNDO-LIST.
 If MOD-LIST non-nil, extend on MOD-LIST."
-  (let ((bound (or n (length undo-list)))
-        (uidx 0)
+  (let ((uidx 0)
         (mod-list (or mod-list (list (make-vundo-m))))
         new-mlist)
-    (while (and (consp undo-list) (< uidx bound))
+
+    (while (and (consp undo-list)
+                (or (null n) (< uidx n)))
+
       ;; Skip leading nils.
-      (while (and (< uidx bound) (null (nth uidx undo-list)))
+      (while (and undo-list (null (car undo-list)))
+        (setq undo-list (cdr undo-list))
         (cl-incf uidx))
-      ;; Add modification.
-      (unless (vundo--position-only-p uidx undo-list)
-        ;; If this record is position-only, we skip it and don’t add a
-        ;; mod for it. Effectively taking it out of the undo tree.
-        ;; Read ‘Position-only records’ section in Commentary for more
-        ;; explanation.
-        (when (< uidx bound)
-          (cl-assert (not (null (nth uidx undo-list))))
-          (push (make-vundo-m :undo-list (nthcdr uidx undo-list))
-                new-mlist)))
-      ;; Skip through the content of this modification.
-      (while (nth uidx undo-list)
-        (cl-incf uidx)))
+
+      ;; It's possible the index was exceeded stepping over nil.
+      (when (or (null n) (< uidx n))
+
+        ;; Add modification.
+        (unless (vundo--position-only-p undo-list)
+          ;; If this record is position-only, we skip it and don’t add a
+          ;; mod for it. Effectively taking it out of the undo tree.
+          ;; Read ‘Position-only records’ section in Commentary for more
+          ;; explanation.
+          (cl-assert (not (null (car undo-list))))
+          (push (make-vundo-m :undo-list undo-list)
+                new-mlist))
+        ;; Skip through the content of this modification.
+        (while (car undo-list)
+          (setq undo-list (cdr undo-list))
+          (cl-incf uidx))))
     (append mod-list new-mlist)))
 
 (defun vundo--update-mapping (mod-list &optional hash-table n)
