@@ -1,7 +1,7 @@
 ;;; vundo.el --- Visual undo tree      -*- lexical-binding: t; -*-
 
 ;; Author: Yuan Fu <casouri@gmail.com>
-;; Package-Requires: ((emacs "28.0"))
+;; Package-Requires: ((emacs "27.0"))
 
 ;;; This file is NOT part of GNU Emacs
 
@@ -222,6 +222,13 @@ modification."
    nil
    :type integer
    :documentation "Marks the text node in the vundo buffer if drawn."))
+
+;; Only defined in emacs-v28+, back-port as needed.
+(unless (fboundp 'undo--last-change-was-undo-p)
+  (defun undo--last-change-was-undo-p (undo-list)
+    (while (and (consp undo-list) (eq (car undo-list) nil))
+      (setq undo-list (cdr undo-list)))
+    (gethash undo-list undo-equiv-table)))
 
 (defun vundo--position-only-p (undo-list)
   "Check if the records at the start of UNDO-LIST are position-only.
