@@ -312,12 +312,17 @@ modification in MOD-LIST. Return HASH-TABLE."
 (defun vundo--eqv-merge (mlist)
   "Connect modifications in MLIST to be in the same equivalence list.
 Order is reserved."
-  (cl-loop for idx from 0 to (1- (length mlist))
-           for this = (nth idx mlist)
-           for next = (nth (1+ idx) mlist)
-           for prev = nil then (nth (1- idx) mlist)
-           do (setf (vundo-m-prev-eqv this) prev)
-           do (setf (vundo-m-next-eqv this) next)))
+  (let* ((mlist-step (cdr-safe mlist))
+         (prev nil)
+         (this (car mlist))
+         (next (car mlist-step)))
+    (while this
+      (setf (vundo-m-prev-eqv this) prev)
+      (setf (vundo-m-next-eqv this) next)
+      (setq mlist-step (cdr-safe mlist-step)
+            prev this
+            this next
+            next (car mlist-step)))))
 
 (defun vundo--sort-mod (mlist &optional reverse)
   "Return sorted modifications in MLIST by their idx...
