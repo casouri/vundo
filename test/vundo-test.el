@@ -26,11 +26,11 @@
                    (list nil ul3 ul6 ul9)))
 
     (let ((ht6 (vundo--update-mapping ml6 nil 0)))
-      (should (eq (gethash ul3 ht6) (nth 1 ml6)))
-      (should (eq (gethash ul6 ht6) (nth 2 ml6)))
+      (should (eq (gethash ul3 ht6) (aref ml6 1)))
+      (should (eq (gethash ul6 ht6) (aref ml6 2)))
 
       (let ((ht9 (vundo--update-mapping ml9 ht6 3)))
-        (should (eq (gethash ul9 ht9) (nth 3 ml9))))
+        (should (eq (gethash ul9 ht9) (aref ml9 3))))
 
       (should (equal (mapcar #'vundo-m-idx ml9)
                      '(0 1 2 3))))))
@@ -65,7 +65,7 @@
 
 (defsubst vundo-test--last-idx ()
   "(vundo-m-idx (car (last vundo--prev-mod-list)))."
-  (vundo-m-idx (car (last vundo--prev-mod-list))))
+  (vundo-m-idx (aref vundo--prev-mod-list (1- (length vundo--prev-mod-list)))))
 
 (defmacro vundo-test--setup (&rest body)
   "Setup and evaluate BODY."
@@ -166,19 +166,19 @@ Sans ending newline."
      (vundo-forward 1)
      (vundo-next 1)
      (should (eq (vundo--get-node-at-point)
-                 (nth 51 vundo--prev-mod-list)))
+                 (aref vundo--prev-mod-list 51)))
 
      (dotimes (_ 20)
        (vundo-previous 1)
        (vundo-next 1))
      (should (eq (vundo--get-node-at-point)
-                 (nth 51 vundo--prev-mod-list)))
+                 (aref vundo--prev-mod-list 51)))
 
      (dotimes (_ 20)
        (vundo-forward 49)
        (vundo-backward 49))
      (should (eq (vundo--get-node-at-point)
-                 (nth 51 vundo--prev-mod-list))))))
+                 (aref vundo--prev-mod-list 51))))))
 
 (ert-deftest vundo-test--3 ()
   "This tests regional undos."
