@@ -45,6 +45,15 @@ to use that font:
 
     (set-face-attribute 'vundo-default nil :family "Symbola")
 
+Tests:
+
+The following command can be used to run tests.
+
+     emacs -batch \
+           -l vundo.el \
+           -l test/vundo-test.el \
+           -f ert-run-tests-batch-and-exit
+
 Changelog:
 
 <2022-03-29 Tue> vundo--mode and vundo--mode-map are now vundo-mode
