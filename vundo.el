@@ -582,7 +582,10 @@ Keep the first N modifications."
 (defun vundo--refresh-buffer
     (orig-buffer vundo-buffer &optional incremental)
   "Refresh VUNDO-BUFFER with the undo history of ORIG-BUFFER.
-If INCREMENTAL non-nil, reuse some date.
+If INCREMENTAL non-nil, reuse existing mod-list and mod-hash.
+INCREMENTAL is only applicable when entries are either added or
+removed from undo-list. On the other hand, if some entries are
+removed and some added, do not use INCREMENTAL.
 
 This function modifies ‘vundo--prev-mod-list’,
 ‘vundo--prev-mod-hash’, ‘vundo--prev-undo-list’,
