@@ -53,11 +53,11 @@
 ;; Once we have generated the data structure and drawn the tree, vundo
 ;; commands can move around on that tree by calling
 ;; `vundo--move-to-node'. It will construct the correct undo-list and
-;; feed it to `primitive-undo'. After each movement,
-;; `vundo--move-to-node' also trims the undo list when possible.
+;; feed it to `primitive-undo'. `vundo--trim-undo-list' can trim the
+;; undo list when possible.
 ;;
 ;; Finally, to avoid generating everything from scratch every time we
-;; moves on the tree, `vundo--refresh-buffer' can incrementally update
+;; move on the tree, `vundo--refresh-buffer' can incrementally update
 ;; the data structures (`vundo--prev-mod-list' and
 ;; `vundo--prev-mod-hash'). If the undo list expands, we only process
 ;; the new entries, if the undo list shrinks (trimmed), we remove
@@ -879,7 +879,26 @@ This function modifies the content of ORIG-BUFFER."
   "Trim ‘buffer-undo-list’ in BUFFER according to CURRENT and MOD-LIST.
 CURRENT is the current mod, MOD-LIST is the current mod-list.
 
-This function modifies ‘buffer-undo-list’ of BUFFER."
+This function modifies ‘buffer-undo-list’ of BUFFER.
+
+IMPORTANT Relationship between ‘vundo--move-to-node’,
+‘vundo--refresh-buffer’, ‘vundo--trim-undo-list’:
+
+Each vundo command cycle roughly works like this:
+1. ‘vundo--refresh-buffer’: ‘buffer-undo-list’ -> mod-list
+2. ‘vundo--move-to-node’: read mod-list, modify ‘buffer-undo-list’
+3. ‘vundo--trim-undo-list’: trim ‘buffer-undo-list’
+1. ‘vundo--refresh-buffer’: ‘buffer-undo-list’ -> mod-list
+...
+
+We can call ‘vundo--move-to-node’ multiple times between two
+‘vundo--refresh-buffer’. But we should only call
+‘vundo--trim-undo-list’ once between two ‘vundo--refresh-buffer’.
+Because if we only trim once, ‘buffer-undo-list’ either shrinks
+or expands. But if we trim multiple times after multiple
+movements, it could happen that the undo-list first
+shrinks (trimmed) then expands. In that situation we cannot use
+the INCREMENTAL option in ‘vundo--refresh-buffer’ anymore."
   (let ((latest-buffer-state-idx
          ;; Among all the MODs that represents a unique buffer
          ;; state, we find the latest one. Because any node
@@ -907,31 +926,29 @@ If ARG < 0, move backward."
   (interactive "p")
   (vundo--check-for-command
    (let ((step (abs arg)))
-     (let ((node (vundo--current-node vundo--prev-mod-list))
-           dest)
+     (let* ((source (vundo--current-node vundo--prev-mod-list))
+            dest
+            (this source)
+            (next (if (> arg 0)
+                      (car (vundo-m-children this))
+                    (vundo-m-parent this))))
        ;; Move to the dest node step-by-step, stop when no further
        ;; node to go to.
-       (while (and node (> step 0))
-         (setq dest (if (> arg 0)
-                        (car (vundo-m-children node))
-                      (vundo-m-parent node)))
-         (when dest
-           (vundo--move-to-node
-            node dest vundo--orig-buffer vundo--prev-mod-list))
-         (setq node dest)
+       (while (and next (> step 0))
+         (setq this next
+               next (if (> arg 0)
+                        (car (vundo-m-children this))
+                      (vundo-m-parent this)))
          (cl-decf step))
-       ;; We trim ‘buffer-undo-list’ after all moving is done, rather
-       ;; than trimming after each move. This way undo-list either
-       ;; shrinks or expands. If we trim after every move, it could
-       ;; happen that the undo-list first shrinks (trimmed) then
-       ;; expands. In that situation we cannot use the INCREMENTAL
-       ;; option in ‘vundo--refresh-buffer’. We don’t want that.
-       (when node
+       (setq dest this)
+       (unless (eq source dest)
+         (vundo--move-to-node
+          source dest vundo--orig-buffer vundo--prev-mod-list)
          (vundo--trim-undo-list
-          vundo--orig-buffer node vundo--prev-mod-list))
-       ;; Refresh display.
-       (vundo--refresh-buffer
-        vundo--orig-buffer (current-buffer) 'incremental)))))
+          vundo--orig-buffer dest vundo--prev-mod-list)
+         ;; Refresh display.
+         (vundo--refresh-buffer
+          vundo--orig-buffer (current-buffer) 'incremental))))))
 
 (defun vundo-backward (arg)
   "Move back ARG nodes in the undo tree.
