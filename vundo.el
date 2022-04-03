@@ -702,6 +702,7 @@ BUFFER must have a valid `buffer-undo-list'."
 (defmacro vundo--check-for-command (&rest body)
   "Sanity check before running interactive commands.
 Do sanity check, then evaluate BODY."
+  (declare (debug (&rest form)))
   `(progn
      (when (not (derived-mode-p 'vundo-mode))
        (user-error "Not in vundo buffer"))
