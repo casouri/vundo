@@ -397,9 +397,9 @@ If a line is not COL columns long, skip that line."
       (goto-char (point-min))
       (while run
         (move-to-column col)
-        (if (and (eq (current-column) col)
-                 (looking-at (regexp-quote from)))
-            (replace-match to))
+        (when (and (eq (current-column) col)
+                   (looking-at (regexp-quote from)))
+          (replace-match to))
         ;; If ‘forward-line’ returns 0, we haven’t hit the end of
         ;; buffer.
         (setq run (and (eq (forward-line) 0)
@@ -456,10 +456,11 @@ Translate according to ‘vundo-glyph-alist’."
              (parent (vundo-m-parent node))
              ;; Is NODE the last child of PARENT?
              (node-last-child-p
-              (if parent
-                  (eq node (car (last (vundo-m-children parent)))))))
+              (when parent
+                (eq node (car (last (vundo-m-children parent)))))))
         ;; Go to parent.
-        (if parent (goto-char (vundo-m-point parent)))
+        (when parent
+          (goto-char (vundo-m-point parent)))
         (let ((col (max 0 (1- (current-column)))))
           (if (null parent)
               (insert (propertize (vundo--translate "○")
@@ -512,10 +513,10 @@ Translate according to ‘vundo-glyph-alist’."
 (defun vundo--kill-buffer-if-point-left (window)
   "Kill the vundo buffer if point left WINDOW.
 WINDOW is the window that was/is displaying the vundo buffer."
-  (if (and (eq (window-buffer window) (vundo--buffer))
-           (not (eq window (selected-window))))
-      (with-selected-window window
-        (kill-buffer-and-window))))
+  (when (and (eq (window-buffer window) (vundo--buffer))
+             (not (eq window (selected-window))))
+    (with-selected-window window
+      (kill-buffer-and-window))))
 
 (defvar vundo-mode-map
   (let ((map (make-sparse-keymap)))
@@ -689,8 +690,8 @@ This function modifies ‘vundo--prev-mod-list’,
   "Return a vundo buffer for BUFFER.
 BUFFER must have a valid `buffer-undo-list'."
   (with-current-buffer buffer
-    (let* ((vundo-buf (vundo--buffer))
-           (orig-buf (current-buffer)))
+    (let ((vundo-buf (vundo--buffer))
+          (orig-buf (current-buffer)))
       (with-current-buffer vundo-buf
         ;; Enable major mode before refreshing the buffer.
         ;; Because major modes kill local variables.
@@ -763,10 +764,10 @@ stop. Eg, (6 5 4 3). Return nil if no valid route."
     (dolist (source (vundo--eqv-list-of from))
       (dolist (dest (vundo--eqv-list-of to))
         ;; We only allow route in this direction.
-        (if (> (vundo-m-idx source) (vundo-m-idx dest))
-            (push (cons (vundo-m-idx source)
-                        (vundo-m-idx dest))
-                  route-list))))
+        (when (> (vundo-m-idx source) (vundo-m-idx dest))
+          (push (cons (vundo-m-idx source)
+                      (vundo-m-idx dest))
+                route-list))))
     ;; Find the shortest route.
     (setq route-list
           (seq-sort
@@ -803,10 +804,10 @@ Basically, return the latest non-undo modification in MOD-LIST."
   (let ((max-node (aref mod-list 0)))
     (cl-loop for midx from 1 to (1- (length mod-list))
              for mod = (aref mod-list midx)
-             do (if (and (null (vundo-m-prev-eqv mod))
-                         (> (vundo-m-idx mod)
-                            (vundo-m-idx max-node)))
-                    (setq max-node mod)))
+             do (when (and (null (vundo-m-prev-eqv mod))
+                           (> (vundo-m-idx mod)
+                              (vundo-m-idx max-node)))
+                  (setq max-node mod)))
     max-node))
 
 (defun vundo--move-to-node (current dest orig-buffer mod-list)
@@ -1008,7 +1009,8 @@ If ARG < 0, move forward."
 TYPE is the type of buffer you want."
   (interactive)
   (let ((buf (get-buffer "*vundo-test*")))
-    (if buf (kill-buffer buf))
+    (when buf
+      (kill-buffer buf))
     (setq buf (get-buffer-create "*vundo-test*"))
     (pop-to-buffer buf)))
 
