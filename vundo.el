@@ -819,8 +819,7 @@ ORIG-BUFFER must be at CURRENT state. MOD-LIST is the list you
 get from ‘vundo--mod-list-from’. You should refresh vundo buffer
 after calling this function.
 
-This function modifies the content of ORIG-BUFFER and its
-‘buffer-undo-list’."
+This function modifies the content of ORIG-BUFFER."
   (cl-assert (not (eq current dest)))
   ;; 1. Find the route we want to take.
   (if-let* ((route (vundo--calculate-shortest-route current dest)))
@@ -836,8 +835,7 @@ This function modifies the content of ORIG-BUFFER and its
              (planned-undo (vundo--list-subtract
                             undo-list-at-source undo-list-at-dest))
              ;; We don’t want to quit in the middle of this function.
-             (inhibit-quit t)
-             trimmed)
+             (inhibit-quit t))
         (with-current-buffer orig-buffer
           (setq-local buffer-read-only t)
           ;; 2. Undo. This will undo modifications in PLANNED-UNDO and
@@ -864,37 +862,44 @@ This function modifies the content of ORIG-BUFFER and its
                  (puthash buffer-undo-list (or undo-list-at-stop t)
                           undo-equiv-table))
                (push nil buffer-undo-list))))
-          ;; 3. Now we may be able to trim the undo-list.
-          (let ((latest-buffer-state-idx
-                 ;; Among all the MODs that represents a unique buffer
-                 ;; state, we find the latest one. Because any node
-                 ;; beyond that one is dispensable.
-                 (vundo-m-idx
-                  (vundo--latest-buffer-state mod-list))))
-            ;; Find a trim point between latest buffer state and
-            ;; current node.
-            (when-let ((possible-trim-point
-                        (cl-loop for node in (vundo--eqv-list-of dest)
-                                 if (>= (vundo-m-idx node)
-                                        latest-buffer-state-idx)
-                                 return node
-                                 finally return nil)))
-              (setq buffer-undo-list
-                    (vundo-m-undo-list possible-trim-point)
-                    trimmed (vundo-m-idx possible-trim-point))))
-          ;; 4. Some misc work.
+          ;; 3. Some misc work.
           (when vundo--message
-            (message "%s -> %s Trim to: %s Steps: %s Undo-list len: %s"
+            (message "%s -> %s Steps: %s Undo-list len: %s"
                      (mapcar #'vundo-m-idx (vundo--eqv-list-of
                                             (aref mod-list source-idx)))
                      (mapcar #'vundo-m-idx (vundo--eqv-list-of
                                             (aref mod-list dest-idx)))
-                     trimmed
                      (length planned-undo)
                      (length buffer-undo-list)))
           (when-let ((win (get-buffer-window)))
             (set-window-point win (point)))))
     (error "No possible route")))
+
+(defun vundo--trim-undo-list (buffer current mod-list)
+  "Trim ‘buffer-undo-list’ in BUFFER according to CURRENT and MOD-LIST.
+CURRENT is the current mod, MOD-LIST is the current mod-list.
+
+This function modifies ‘buffer-undo-list’ of BUFFER."
+  (let ((latest-buffer-state-idx
+         ;; Among all the MODs that represents a unique buffer
+         ;; state, we find the latest one. Because any node
+         ;; beyond that one is dispensable.
+         (vundo-m-idx
+          (vundo--latest-buffer-state mod-list))))
+    ;; Find a trim point between latest buffer state and
+    ;; current node.
+    (when-let ((possible-trim-point
+                (cl-loop for node in (vundo--eqv-list-of current)
+                         if (>= (vundo-m-idx node)
+                                latest-buffer-state-idx)
+                         return node
+                         finally return nil)))
+      (with-current-buffer buffer
+        (setq buffer-undo-list
+              (vundo-m-undo-list possible-trim-point)))
+      (when vundo--message
+        (message "Trimmed to: %s"
+                 (vundo-m-idx possible-trim-point))))))
 
 (defun vundo-forward (arg)
   "Move forward ARG nodes in the undo tree.
@@ -915,6 +920,15 @@ If ARG < 0, move backward."
             node dest vundo--orig-buffer vundo--prev-mod-list))
          (setq node dest)
          (cl-decf step))
+       ;; We trim ‘buffer-undo-list’ after all moving is done, rather
+       ;; than trimming after each move. This way undo-list either
+       ;; shrinks or expands. If we trim after every move, it could
+       ;; happen that the undo-list first shrinks (trimmed) then
+       ;; expands. In that situation we cannot use the INCREMENTAL
+       ;; option in ‘vundo--refresh-buffer’. We don’t want that.
+       (when node
+         (vundo--trim-undo-list
+          vundo--orig-buffer node vundo--prev-mod-list))
        ;; Refresh display.
        (vundo--refresh-buffer
         vundo--orig-buffer (current-buffer) 'incremental)))))
@@ -943,6 +957,8 @@ If ARG < 0, move forward."
          (when (not (eq source dest))
            (vundo--move-to-node
             source dest vundo--orig-buffer vundo--prev-mod-list)
+           (vundo--trim-undo-list
+            vundo--orig-buffer dest vundo--prev-mod-list)
            (vundo--refresh-buffer
             vundo--orig-buffer (current-buffer)
             'incremental)))))))
@@ -980,6 +996,8 @@ If ARG < 0, move forward."
         this next vundo--orig-buffer vundo--prev-mod-list)
        (setq this next
              next (vundo-m-parent this)))
+     (vundo--trim-undo-list
+      vundo--orig-buffer this vundo--prev-mod-list)
      (vundo--refresh-buffer
       vundo--orig-buffer (current-buffer)
       'incremental))))
@@ -1001,6 +1019,8 @@ If ARG < 0, move forward."
         this next vundo--orig-buffer vundo--prev-mod-list)
        (setq this next
              next (car (vundo-m-children this))))
+     (vundo--trim-undo-list
+      vundo--orig-buffer this vundo--prev-mod-list)
      (vundo--refresh-buffer
       vundo--orig-buffer (current-buffer)
       'incremental))))
