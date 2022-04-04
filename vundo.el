@@ -308,7 +308,7 @@ modification in MOD-LIST. Return HASH-TABLE."
       (cl-assert (not (eq mod (vundo-m-next-eqv mod))))
       (setq mod (vundo-m-next-eqv mod))
       (push mod eqv-list))
-    (reverse eqv-list)))
+    (nreverse eqv-list)))
 
 (defun vundo--eqv-merge (mlist)
   "Connect modifications in MLIST to be in the same equivalence list.
