@@ -183,9 +183,9 @@ By default, the tree is drawn with ASCII characters like this:
 Set this variable to ‘vundo-unicode-symbols’ to use Unicode
 characters."
   :type `(alist :tag "Translation alist"
-		        :key-type (symbol :tag "Part of tree")
-		        :value-type (character :tag "Draw using")
-		        :options ,(mapcar #'car vundo-unicode-symbols)))
+                :key-type (symbol :tag "Part of tree")
+                :value-type (character :tag "Draw using")
+                :options ,(mapcar #'car vundo-unicode-symbols)))
 
 ;;; Undo list to mod list
 
