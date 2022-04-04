@@ -176,9 +176,9 @@ in a tree like
 By default, the tree is drawn with ASCII characters like this:
 
     o--o--o
-    |  `--x
+    |  \\=`--x
     |--o
-    `--o
+    \\=`--o
 
 Set this variable to ‘vundo-unicode-symbols’ to use Unicode
 characters."
