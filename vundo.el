@@ -389,23 +389,6 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
 
 ;;; Draw tree
 
-(defun vundo--replace-at-col (from to col &optional until)
-  "Replace FROM at COL with TO in each line of current buffer.
-If a line is not COL columns long, skip that line."
-  (save-excursion
-    (let ((run t))
-      (goto-char (point-min))
-      (while run
-        (move-to-column col)
-        (if (and (eq (current-column) col)
-                 (looking-at (regexp-quote from)))
-            (replace-match to))
-        ;; If ‘forward-line’ returns 0, we haven’t hit the end of
-        ;; buffer.
-        (setq run (and (eq (forward-line) 0)
-                       (not (eq (point) (point-max)))
-                       (< (point) (or until (point-max)))))))))
-
 (defun vundo--put-node-at-point (node)
   "Store the corresponding NODE as text property at point."
   (put-text-property (1- (point)) (point)
