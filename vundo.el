@@ -675,8 +675,8 @@ This function modifies ‘vundo--prev-mod-list’,
   "Return a vundo buffer for BUFFER.
 BUFFER must have a valid `buffer-undo-list'."
   (with-current-buffer buffer
-    (let* ((vundo-buf (vundo--buffer))
-           (orig-buf (current-buffer)))
+    (let ((vundo-buf (vundo--buffer))
+          (orig-buf (current-buffer)))
       (with-current-buffer vundo-buf
         ;; Enable major mode before refreshing the buffer.
         ;; Because major modes kill local variables.
