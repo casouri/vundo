@@ -55,7 +55,19 @@ to run those tests interactively, or use the following batch command:
            -l test/vundo-test.el \
            -f ert-run-tests-batch-and-exit
 
+Comparing to undo-tree:
+
+Vundo doesn’t need to be turned on all the time nor replace the undo
+commands like undo-tree does. Vundo displays the tree horizontally,
+whereas undo-tree displays a tree vertically. Vundo doesn’t have many
+advanced features that undo-tree does (like showing diff), and most
+probably will not add those features in the future.
+
+
+
 Changelog:
+
+<2022-04-04 Mon> Version 1.0.0
 
 <2022-03-29 Tue> vundo--mode and vundo--mode-map are now vundo-mode
 and vundo-mode-map. A new custom option vundo-compact-display is added.
@@ -70,12 +82,3 @@ differently now, it now draws
 
 <2021-11-26 Fri>: Variable vundo-translate-alist changed to
 vundo-glyph-alist and has different value now.
-
-
-Comparing to undo-tree:
-
-Vundo doesn’t need to be turned on all the time nor replace the undo
-commands like undo-tree does. Vundo displays the tree horizontally,
-whereas undo-tree displays a tree vertically. Vundo doesn’t have many
-advanced features that undo-tree does (like showing diff), and most
-probably will not add those features in the future.

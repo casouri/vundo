@@ -1,9 +1,28 @@
 ;;; vundo.el --- Visual undo tree      -*- lexical-binding: t; -*-
 
+;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;;
 ;; Author: Yuan Fu <casouri@gmail.com>
+;; Maintainer: Yuan Fu <casouri@gmail.com>
+;; URL: https://github.com/casouri/vundo
+;; Version: 1.0.0
+;; Keywords: undo, text
 ;; Package-Requires: ((emacs "28.0"))
-
-;;; This file is NOT part of GNU Emacs
+;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -25,6 +44,32 @@
 ;; original buffer, the tree in the vundo buffer doesn’t automatically
 ;; update. Vundo catches up the next time you invoke any command:
 ;; instead of performing that command, it updates the tree.
+;;
+;; Faces:
+;;
+;; - vundo-default
+;; - vundo-node
+;; - vundo-stem
+;; - vundo-highlight
+;;
+;; If you want to use prettier Unicode characters to draw the tree like
+;; this:
+;;
+;;     ○──○──○
+;;     │  └──●
+;;     ├──○
+;;     └──○
+;;
+;; set vundo-glyph-alist by
+;;
+;;     (setq vundo-glyph-alist vundo-unicode-symbols)
+;;
+;; Your default font needs to contain these Unicode characters, otherwise
+;; they look terrible and don’t align. You can find a font that covers
+;; these characters (eg, Symbola, Unifont), and set ‘vundo-default’ face
+;; to use that font:
+;;
+;;     (set-face-attribute 'vundo-default nil :family "Symbola")
 
 ;;; Developer:
 ;;
