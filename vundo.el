@@ -393,16 +393,16 @@ modification in MOD-LIST. Return HASH-TABLE."
 
 (defun vundo--eqv-list-of (mod)
   "Return all the modifications equivalent to MOD."
-  (while (vundo-m-prev-eqv mod)
-    (cl-assert (not (eq mod (vundo-m-prev-eqv mod))))
-    (setq mod (vundo-m-prev-eqv mod)))
-  ;; At the first mod in the equiv chain.
+  (while (vundo-m-next-eqv mod)
+    (cl-assert (not (eq mod (vundo-m-next-eqv mod))))
+    (setq mod (vundo-m-next-eqv mod)))
+  ;; Start at the last mod in the equiv chain, walk back to the first.
   (let ((eqv-list (list mod)))
-    (while (vundo-m-next-eqv mod)
-      (cl-assert (not (eq mod (vundo-m-next-eqv mod))))
-      (setq mod (vundo-m-next-eqv mod))
+    (while (vundo-m-prev-eqv mod)
+      (cl-assert (not (eq mod (vundo-m-prev-eqv mod))))
+      (setq mod (vundo-m-prev-eqv mod))
       (push mod eqv-list))
-    (nreverse eqv-list)))
+    eqv-list))
 
 (defun vundo--eqv-merge (mlist)
   "Connect modifications in MLIST to be in the same equivalence list.
