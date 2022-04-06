@@ -363,6 +363,15 @@ modification in MOD-LIST. Return HASH-TABLE."
 ;; We know 3 and 5 are in the same equivalent list because 5 maps to 3
 ;; in `undo-equiv-table' (basically).
 
+(defun vundo--master-eqv-mod-of (mod)
+  "Return the master mod in the eqv-list of MOD.
+Master mod is the mod with the smallest index in the eqv-list.
+This function is equivalent to (car (vundo--eqv-list-of mod))."
+  (while (vundo-m-prev-eqv mod)
+    (cl-assert (not (eq mod (vundo-m-prev-eqv mod))))
+    (setq mod (vundo-m-prev-eqv mod)))
+  mod)
+
 (defun vundo--eqv-list-of (mod)
   "Return all the modifications equivalent to MOD."
   (while (vundo-m-next-eqv mod)
@@ -439,8 +448,7 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
            ;; the child.
            (unless (eq m 0)
              (let* ((m-1 (aref mod-list (1- m)))
-                    ;; TODO: may need to optimize.
-                    (min-eqv-mod (car (vundo--eqv-list-of m-1))))
+                    (min-eqv-mod (vundo--master-eqv-mod-of m-1)))
                (setf (vundo-m-parent mod) min-eqv-mod)
                (let ((children (vundo-m-children min-eqv-mod)))
                  ;; If everything goes right, we should never encounter
@@ -703,7 +711,7 @@ This function modifies ‘vundo--prev-mod-list’,
 
 (defun vundo--current-node (mod-list)
   "Return the currently highlighted node in MOD-LIST."
-  (car (vundo--eqv-list-of (aref mod-list (1- (length mod-list))))))
+  (vundo--master-eqv-mod-of (aref mod-list (1- (length mod-list)))))
 
 (defun vundo--highlight-node (node)
   "Highlight NODE as current node."
