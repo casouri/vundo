@@ -6,8 +6,8 @@
 ;; Maintainer: Yuan Fu <casouri@gmail.com>
 ;; URL: https://github.com/casouri/vundo
 ;; Version: 1.0.0
-;; Keywords: undo, text
-;; Package-Requires: ((emacs "28.0"))
+;; Keywords: undo, text, editing
+;; Package-Requires: ((emacs "28.1"))
 ;;
 ;; This file is part of GNU Emacs.
 ;;
