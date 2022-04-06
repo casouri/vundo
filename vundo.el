@@ -26,8 +26,10 @@
 
 ;;; Commentary:
 ;;
-;; To use vundo, type M-x vundo RET in the buffer you want to undo. An
-;; undo tree buffer should pop up. To move around, type:
+;; Vundo (visual undo) displays the undo history as a tree and lets you
+;; move in the tree to go back to previous buffer states. To use vundo,
+;; type M-x vundo RET in the buffer you want to undo. An undo tree buffer
+;; should pop up. To move around, type:
 ;;
 ;;   f   to go forward
 ;;   b   to go backward
