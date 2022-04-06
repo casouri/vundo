@@ -597,7 +597,8 @@ WINDOW is the window that was/is displaying the vundo buffer."
 
   ;; Disable evil-mode, as normal-mode
   ;; key bindings override the ones set by vundo.
-  (when (boundp 'evil-emacs-state-modes)
+  (when (and (boundp 'evil-emacs-state-modes)
+             (not (memq 'vundo-mode evil-emacs-state-modes)))
     (push 'vundo-mode evil-emacs-state-modes)))
 
 (defvar-local vundo--prev-mod-list nil
