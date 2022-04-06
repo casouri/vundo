@@ -525,7 +525,9 @@ Translate according to ‘vundo-glyph-alist’."
   "Draw the tree in MOD-LIST in current buffer."
   (let* ((root (aref mod-list 0))
          (node-queue (list root))
-         (inhibit-read-only t))
+         (inhibit-read-only t)
+         ;; Harmless but they run each edit adding overhead.
+         (inhibit-modification-hooks t))
     (erase-buffer)
     (while node-queue
       (let* ((node (pop node-queue))
