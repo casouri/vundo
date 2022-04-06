@@ -1,25 +1,34 @@
-To use vundo, type M-x vundo RET in the buffer you want to undo.
-A undo tree buffer should pop up. To move around, type:
+To use vundo, type M-x vundo RET in the buffer you want to undo. An
+undo tree buffer should pop up. To move around, type:
 
   f   to go forward
   b   to go backward
+
   n   to go to the node below when you at a branching point
   p   to go to the node above
+
+  a   to go back to the last branching point
+  e   to go forward to the end/tip of the branch
+
   q   to quit, you can also type C-g
 
-By default, you need to press RET to “commit” your change and if
-you quit with q or C-g, the change made by vundo are rolled back.
-You can set ‘vundo-roll-back-on-quit’ to nil to disable rolling
-back.
+n/p may need some more explanation. In the following tree, n/p can
+move between A and B because they share a parent (thus at a branching
+point), but not C and D.
 
-If you bring up the vundo buffer and make some modification in the
-original buffer, the tree in the vundo buffer doesn’t automatically
-update. Vundo catches up the next time you invoke any command:
-instead of performing that command, it updates the tree.
+         A  C
+    ──○──○──○──○──○
+      │  ↕
+      └──○──○──○
+         B  D
+
+By default, you need to press RET to “commit” your change and if you
+quit with q or C-g, the changes made by vundo are rolled back. You can
+set ‘vundo-roll-back-on-quit’ to nil to disable rolling back.
 
 Note: vundo.el requires Emacs 28.
 
-Faces:
+Customizable faces:
 
 - vundo-default
 - vundo-node
@@ -65,11 +74,11 @@ probably will not add those features in the future.
 
 
 
-Changelog:
+Changelog (full changelog in NEWS.txt):
 
-<2022-04-04 Mon> Version 1.0.0
+<2022-04-04 Mon>: Version 1.0.0
 
-<2022-03-29 Tue> vundo--mode and vundo--mode-map are now vundo-mode
+<2022-03-29 Tue>: vundo--mode and vundo--mode-map are now vundo-mode
 and vundo-mode-map. A new custom option vundo-compact-display is added.
 
 <2022-03-23 Wed>: UI now defaults to ASCII mode. ASCII mode also draws

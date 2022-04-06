@@ -1,0 +1,15 @@
+<2022-04-04 Mon>: Version 1.0.0
+
+<2022-03-29 Tue>: vundo--mode and vundo--mode-map are now vundo-mode
+and vundo-mode-map. A new custom option vundo-compact-display is added.
+
+<2022-03-23 Wed>: UI now defaults to ASCII mode. ASCII mode also draws
+differently now, it now draws
+
+    o--o--o     instead of      o--o--o
+    |  `--x                     |  +--*
+    |--o                        |--o
+    `--o                        +--o
+
+<2021-11-26 Fri>: Variable vundo-translate-alist changed to
+vundo-glyph-alist and has different value now.
