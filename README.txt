@@ -1,5 +1,7 @@
-To use vundo, type M-x vundo RET in the buffer you want to undo. An
-undo tree buffer should pop up. To move around, type:
+Vundo (visual undo) displays the undo history as a tree and lets you
+move in the tree to go back to previous buffer states. To use vundo,
+type M-x vundo RET in the buffer you want to undo. An undo tree buffer
+should pop up. To move around, type:
 
   f   to go forward
   b   to go backward
@@ -54,6 +56,14 @@ to use that font:
 
     (set-face-attribute 'vundo-default nil :family "Symbola")
 
+Comparing to undo-tree:
+
+Vundo doesn’t need to be turned on all the time nor replace the undo
+commands like undo-tree does. Vundo displays the tree horizontally,
+whereas undo-tree displays a tree vertically. Vundo doesn’t have many
+advanced features that undo-tree does (like showing diff), and most
+probably will not add those features in the future.
+
 Tests:
 
 You can run tests by loading test/vundo-test.el and M-x ert RET t RET
@@ -63,15 +73,6 @@ to run those tests interactively, or use the following batch command:
            -l vundo.el \
            -l test/vundo-test.el \
            -f ert-run-tests-batch-and-exit
-
-Comparing to undo-tree:
-
-Vundo doesn’t need to be turned on all the time nor replace the undo
-commands like undo-tree does. Vundo displays the tree horizontally,
-whereas undo-tree displays a tree vertically. Vundo doesn’t have many
-advanced features that undo-tree does (like showing diff), and most
-probably will not add those features in the future.
-
 
 
 Changelog (full changelog in NEWS.txt):

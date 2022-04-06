@@ -82,16 +82,6 @@
 ;;
 ;;     (set-face-attribute 'vundo-default nil :family "Symbola")
 ;;
-;; Tests:
-;;
-;; You can run tests by loading test/vundo-test.el and M-x ert RET t RET
-;; to run those tests interactively, or use the following batch command:
-;;
-;;      emacs --batch \
-;;            -l vundo.el \
-;;            -l test/vundo-test.el \
-;;            -f ert-run-tests-batch-and-exit
-;;
 ;; Comparing to undo-tree:
 ;;
 ;; Vundo doesn’t need to be turned on all the time nor replace the undo
@@ -99,26 +89,6 @@
 ;; whereas undo-tree displays a tree vertically. Vundo doesn’t have many
 ;; advanced features that undo-tree does (like showing diff), and most
 ;; probably will not add those features in the future.
-;;
-;;
-;;
-;; Changelog (full changelog in NEWS.txt):
-;;
-;; <2022-04-04 Mon>: Version 1.0.0
-;;
-;; <2022-03-29 Tue>: vundo--mode and vundo--mode-map are now vundo-mode
-;; and vundo-mode-map. A new custom option vundo-compact-display is added.
-;;
-;; <2022-03-23 Wed>: UI now defaults to ASCII mode. ASCII mode also draws
-;; differently now, it now draws
-;;
-;;     o--o--o     instead of      o--o--o
-;;     |  `--x                     |  +--*
-;;     |--o                        |--o
-;;     `--o                        +--o
-;;
-;; <2021-11-26 Fri>: Variable vundo-translate-alist changed to
-;; vundo-glyph-alist and has different value now.
 
 ;;; Developer:
 ;;
