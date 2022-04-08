@@ -253,6 +253,14 @@ characters."
 		        :value-type (character :tag "Draw using")
 		        :options ,(mapcar #'car vundo-unicode-symbols)))
 
+(defcustom vundo-enter-hook nil
+  "List of functions to call when entering Vundo."
+  :type 'hook)
+
+(defcustom vundo-exit-hook nil
+  "List of functions to call when entering Vundo."
+  :type 'hook)
+
 ;;; Undo list to mod list
 
 (cl-defstruct vundo-m
@@ -732,6 +740,8 @@ This function modifies ‘vundo--prev-mod-list’,
   (interactive)
   (when (not (consp buffer-undo-list))
     (user-error "There is no undo history"))
+  (run-hooks 'vundo-enter-hook)
+
   (let ((vundo-buf (vundo-1 (current-buffer))))
     (select-window
      (display-buffer-in-side-window
@@ -805,14 +815,20 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
       vundo--orig-buffer vundo--prev-mod-list))
    (with-current-buffer vundo--orig-buffer
      (setq-local buffer-read-only nil))
-   (kill-buffer-and-window)))
+   (let ((orig-buffer vundo--orig-buffer))
+     (kill-buffer-and-window)
+     (with-current-buffer orig-buffer
+       (run-hooks 'vundo-exit-hook)))))
 
 (defun vundo-confirm ()
   "Confirm change and close vundo window."
   (interactive)
   (with-current-buffer vundo--orig-buffer
     (setq-local buffer-read-only nil))
-  (kill-buffer-and-window))
+  (let ((orig-buffer vundo--orig-buffer))
+    (kill-buffer-and-window)
+    (with-current-buffer orig-buffer
+      (run-hooks 'vundo-exit-hook))))
 
 ;;; Traverse undo tree
 
