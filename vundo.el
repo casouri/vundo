@@ -597,6 +597,9 @@ WINDOW is the window that was/is displaying the vundo buffer."
 
 (define-derived-mode vundo-mode special-mode
   "Vundo" "Mode for displaying the undo tree."
+  ;; This minor mode only applies to buffers created by `vundo', there is no
+  ;; need to show this minor mode to users.
+  :interactive nil
   (setq mode-line-format nil
         truncate-lines t
         cursor-type nil)
@@ -794,7 +797,7 @@ Do sanity check, then evaluate BODY."
 (defun vundo-quit ()
   "Quit buffer and window.
 Roll back changes if `vundo-roll-back-on-quit' is non-nil."
-  (interactive)
+  (interactive nil vundo-mode)
   (vundo--check-for-command
    (when (and vundo-roll-back-on-quit vundo--roll-back-to-this
               (not (eq vundo--roll-back-to-this
@@ -809,7 +812,7 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
 
 (defun vundo-confirm ()
   "Confirm change and close vundo window."
-  (interactive)
+  (interactive nil vundo-mode)
   (with-current-buffer vundo--orig-buffer
     (setq-local buffer-read-only nil))
   (kill-buffer-and-window))
@@ -982,7 +985,7 @@ the INCREMENTAL option in ‘vundo--refresh-buffer’ anymore."
 (defun vundo-forward (arg)
   "Move forward ARG nodes in the undo tree.
 If ARG < 0, move backward."
-  (interactive "p")
+  (interactive "p" vundo-mode)
   (vundo--check-for-command
    (let ((step (abs arg)))
      (let* ((source (vundo--current-node vundo--prev-mod-list))
@@ -1012,12 +1015,12 @@ If ARG < 0, move backward."
 (defun vundo-backward (arg)
   "Move back ARG nodes in the undo tree.
 If ARG < 0, move forward."
-  (interactive "p")
+  (interactive "p" vundo-mode)
   (vundo-forward (- arg)))
 
 (defun vundo-next (arg)
   "Move to node below the current one. Move ARG steps."
-  (interactive "p")
+  (interactive "p" vundo-mode)
   (vundo--check-for-command
    (let* ((source (vundo--current-node vundo--prev-mod-list))
           (parent (vundo-m-parent source)))
@@ -1041,7 +1044,7 @@ If ARG < 0, move forward."
 
 (defun vundo-previous (arg)
   "Move to node above the current one. Move ARG steps."
-  (interactive "p")
+  (interactive "p" vundo-mode)
   (vundo-next (- arg)))
 
 (defun vundo--stem-root-p (node)
@@ -1057,7 +1060,7 @@ If ARG < 0, move forward."
 
 (defun vundo-stem-root ()
   "Move to the beginning of the current stem."
-  (interactive)
+  (interactive nil vundo-mode)
   (vundo--check-for-command
    (when-let* ((this (vundo--current-node vundo--prev-mod-list))
                (next (vundo-m-parent this)))
@@ -1080,7 +1083,7 @@ If ARG < 0, move forward."
 
 (defun vundo-stem-end ()
   "Move to the end of the current stem."
-  (interactive)
+  (interactive nil vundo)
   (vundo--check-for-command
    (when-let* ((this (vundo--current-node vundo--prev-mod-list))
                (next (car (vundo-m-children this))))
@@ -1114,7 +1117,7 @@ TYPE is the type of buffer you want."
 
 (defun vundo--inspect ()
   "Print some useful info about the node at point."
-  (interactive)
+  (interactive nil vundo-mode)
   (let ((node (vundo--get-node-at-point)))
     (message "Parent: %s States: %s Children: %s"
              (and (vundo-m-parent node)
@@ -1125,7 +1128,7 @@ TYPE is the type of buffer you want."
 
 (defun vundo--debug ()
   "Make cursor visible and show debug information on movement."
-  (interactive)
+  (interactive nil vundo-mode)
   (setq cursor-type t
         vundo--message t))
 
