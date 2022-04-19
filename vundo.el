@@ -183,7 +183,7 @@
   "If non-nil, vundo will roll back the change when it quits."
   :type 'boolean)
 
-(defcustom vundo--window-max-height 3
+(defcustom vundo-window-max-height 3
   "The maximum height of the vundo window."
   :type 'integer)
 
@@ -740,7 +740,7 @@ This function modifies ‘vundo--prev-mod-list’,
         (window-height . 3))))
     (set-window-dedicated-p nil t)
     (let ((window-min-height 3))
-      (fit-window-to-buffer nil vundo--window-max-height))
+      (fit-window-to-buffer nil vundo-window-max-height))
     (goto-char
      (vundo-m-point
       (vundo--current-node vundo--prev-mod-list)))
