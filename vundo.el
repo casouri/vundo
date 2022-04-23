@@ -114,10 +114,10 @@
 ;; `vundo--build-tree'. We build the tree by a simple observation:
 ;; only non-undo modifications creates new unique buffer states and
 ;; need to be drawn in the tree. For undo modifications, they
-;; associates equivalent nodes.
+;; associate equivalent nodes.
 ;;
 ;; Once we have generated the data structure and drawn the tree, vundo
-;; commands can move around on that tree by calling
+;; commands can move around in that tree by calling
 ;; `vundo--move-to-node'. It will construct the correct undo-list and
 ;; feed it to `primitive-undo'. `vundo--trim-undo-list' can trim the
 ;; undo list when possible.
