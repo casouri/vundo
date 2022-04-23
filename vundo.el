@@ -261,8 +261,9 @@ the user invoked ‘vundo’, before every setup ‘vundo’ does."
 
 (defcustom vundo-post-exit-hook nil
   "List of functions to call when entering vundo.
-This hook runs after every clean up the exiting function does.
-Ie, it is the very last thing that happens when vundo exists."
+This hook runs in the original buffer the user invoked ‘vundo’,
+after every clean up the exiting function does. Ie, it is the
+very last thing that happens when vundo exists."
   :type 'hook)
 
 ;;; Undo list to mod list
