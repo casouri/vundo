@@ -745,6 +745,8 @@ This function modifies ‘vundo--prev-mod-list’,
   (interactive)
   (when (not (consp buffer-undo-list))
     (user-error "There is no undo history"))
+  (when buffer-read-only
+    (user-error "Buffer is read-only"))
   (run-hooks 'vundo-pre-enter-hook)
   (let ((vundo-buf (vundo-1 (current-buffer))))
     (select-window
