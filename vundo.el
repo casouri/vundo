@@ -1162,6 +1162,22 @@ TYPE is the type of buffer you want."
                                      (vundo-1 (current-buffer))
                                      (message "SUCCESS"))))))
 
+;;; Hooks
+
+(defvar vundo-current-buffer nil
+  "Current buffer object when invoking `vundo'.")
+(defun vundo-remember-current-buffer ()
+  (setq vundo-current-buffer (current-buffer)))
+(defun vundo-switch-back-to-original-window ()
+  (catch 'return
+    (dolist (window (window-list))
+      (when (eq (window-buffer window) vundo-current-buffer)
+	(select-window window)
+	(throw 'return nil)))))
+
+(add-hook 'vundo-pre-enter-hook #'vundo-remember-current-buffer)
+(add-hook 'vundo-post-exit-hook #'vundo-switch-back-to-original-window)
+
 (provide 'vundo)
 
 ;;; vundo.el ends here
