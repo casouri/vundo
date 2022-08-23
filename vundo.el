@@ -821,8 +821,11 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
       vundo--orig-buffer vundo--prev-mod-list))
    (with-current-buffer vundo--orig-buffer
      (setq-local buffer-read-only nil))
-   (let ((orig-buffer vundo--orig-buffer))
+   (let* ((orig-buffer vundo--orig-buffer)
+          (orig-window (get-buffer-window orig-buffer)))
      (kill-buffer-and-window)
+     (when (window-live-p orig-window)
+       (select-window orig-window))
      (with-current-buffer orig-buffer
        (run-hooks 'vundo-post-exit-hook)))))
 
@@ -831,8 +834,11 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
   (interactive)
   (with-current-buffer vundo--orig-buffer
     (setq-local buffer-read-only nil))
-  (let ((orig-buffer vundo--orig-buffer))
+  (let* ((orig-buffer vundo--orig-buffer)
+         (orig-window (get-buffer-window orig-buffer)))
     (kill-buffer-and-window)
+    (when (window-live-p orig-window)
+      (select-window orig-window))
     (with-current-buffer orig-buffer
       (run-hooks 'vundo-post-exit-hook))))
 
