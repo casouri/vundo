@@ -605,6 +605,8 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "RET") #'vundo-confirm)
     (define-key map (kbd "i") #'vundo--inspect)
     (define-key map (kbd "d") #'vundo--debug)
+
+    (define-key map [remap save-buffer] #'vundo-save)
     map)
   "Keymap for `vundo-mode'.")
 
@@ -1128,6 +1130,13 @@ If ARG < 0, move forward."
      (vundo--refresh-buffer
       vundo--orig-buffer (current-buffer)
       'incremental))))
+
+(defun vundo-save (arg)
+  "Run `save-buffer' with the current buffer Vundo is operating on."
+  (interactive "p")
+  (vundo--check-for-command
+   (with-current-buffer vundo--orig-buffer
+     (save-buffer arg))))
 
 ;;; Debug
 

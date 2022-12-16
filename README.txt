@@ -14,6 +14,9 @@ should pop up. To move around, type:
 
   q   to quit, you can also type C-g
 
+  [remap save-buffer]
+      to save the buffer at the current undo state
+
 n/p may need some more explanation. In the following tree, n/p can
 move between A and B because they share a parent (thus at a branching
 point), but not C and D.
