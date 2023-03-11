@@ -179,6 +179,13 @@
      (:inherit vundo-node :weight bold :foreground "yellow")))
   "Face for the highlighted node in the undo tree.")
 
+(defface vundo-saved
+  '((((background light)) .
+     (:inherit vundo-node :weight bold :foreground "dark green"))
+    (((background dark)) .
+     (:inherit vundo-node :weight bold :foreground "light green")))
+  "Face for saved nodes in the undo tree.")
+
 (defcustom vundo-roll-back-on-quit t
   "If non-nil, vundo will roll back the change when it quits."
   :type 'boolean)
@@ -300,7 +307,11 @@ modification."
   (point
    nil
    :type integer
-   :documentation "Marks the text node in the vundo buffer if drawn."))
+   :documentation "Marks the text node in the vundo buffer if drawn.")
+  (saved
+   nil
+   :type boolean
+   :documentation "Whether this mod altered a saved buffer state."))
 
 (defun vundo--position-only-p (undo-list)
   "Check if the records at the start of UNDO-LIST are position-only.
@@ -330,18 +341,23 @@ If MOD-LIST non-nil, extend on MOD-LIST."
       ;; It's possible the index was exceeded stepping over nil.
       (when (or (null n) (< uidx n))
         ;; Add modification.
-        (unless (vundo--position-only-p undo-list)
-          ;; If this record is position-only, we skip it and don’t add a
-          ;; mod for it. Effectively taking it out of the undo tree.
-          ;; Read ‘Position-only records’ section in Commentary for more
-          ;; explanation.
-          (cl-assert (not (null (car undo-list))))
-          (push (make-vundo-m :undo-list undo-list)
-                new-mlist))
-        ;; Skip through the content of this modification.
-        (while (car undo-list)
-          (setq undo-list (cdr undo-list))
-          (cl-incf uidx))))
+	(let ((pos-only (vundo--position-only-p undo-list)) saved)
+          (unless pos-only
+            ;; If this record is position-only, we skip it and don’t add a
+            ;; mod for it. Effectively taking it out of the undo tree.
+            ;; Read ‘Position-only records’ section in Commentary for more
+            ;; explanation.
+            (cl-assert (not (null (car undo-list))))
+            (push (make-vundo-m :undo-list undo-list)
+                  new-mlist))
+          ;; Skip through the content of this modification.
+          (while (car undo-list)
+	    (if (and (consp (car undo-list)) (eq (caar undo-list) t))
+		(setq saved t))		; a modification timestamp!
+            (setq undo-list (cdr undo-list))
+            (cl-incf uidx))
+	  (when (and saved (not pos-only))
+	    (setf (vundo-m-saved (car new-mlist)) t)))))
     ;; Convert to vector.
     (vconcat mod-list new-mlist)))
 
@@ -528,13 +544,16 @@ Translate according to `vundo-glyph-alist'."
              ;; Is NODE the last child of PARENT?
              (node-last-child-p
               (if parent
-                  (eq node (car (last (vundo-m-children parent)))))))
+                  (eq node (car (last (vundo-m-children parent))))))
+	     (node-face
+	      (if (and children (vundo-m-saved (car children)))
+		  'vundo-saved 'vundo-node)))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
         (let ((col (max 0 (1- (current-column)))))
           (if (null parent)
               (insert (propertize (vundo--translate "○")
-                                  'face 'vundo-node))
+                                  'face node-face))
             (let ((planned-point (point)))
               ;; If a node is blocking, try next line.
               ;; Example: 1--2--3  Here we want to add a
@@ -556,7 +575,7 @@ Translate according to `vundo-glyph-alist'."
                             (if vundo-compact-display "─" "──"))
                            'face 'vundo-stem)
                           (propertize (vundo--translate "○")
-                                      'face 'vundo-node))
+                                      'face node-face))
                 ;; Delete the previously inserted |.
                 (delete-char -1)
                 (insert (propertize
@@ -566,7 +585,7 @@ Translate according to `vundo-glyph-alist'."
                             (if vundo-compact-display "├─" "├──")))
                          'face 'vundo-stem))
                 (insert (propertize (vundo--translate "○")
-                                    'face 'vundo-node))))))
+                                    'face node-face))))))
         ;; Store point so we can later come back to this node.
         (setf (vundo-m-point node) (point))
         ;; Associate the text node in buffer with the node object.
