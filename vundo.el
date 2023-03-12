@@ -308,10 +308,12 @@ modification."
    nil
    :type integer
    :documentation "Marks the text node in the vundo buffer if drawn.")
-  (saved
+  (prev-saved-p
    nil
    :type boolean
-   :documentation "Whether this mod altered a saved buffer state."))
+   :documentation "Whether this mod altered a saved buffer state.
+If this field is t, this mod contains a timestamp entry in the
+undo list, meaning the previous state is saved to file."))
 
 (defun vundo--position-only-p (undo-list)
   "Check if the records at the start of UNDO-LIST are position-only.
@@ -341,23 +343,27 @@ If MOD-LIST non-nil, extend on MOD-LIST."
       ;; It's possible the index was exceeded stepping over nil.
       (when (or (null n) (< uidx n))
         ;; Add modification.
-	(let ((pos-only (vundo--position-only-p undo-list)) saved)
+	    (let ((pos-only (vundo--position-only-p undo-list))
+              (saved nil))
           (unless pos-only
-            ;; If this record is position-only, we skip it and don’t add a
-            ;; mod for it. Effectively taking it out of the undo tree.
-            ;; Read ‘Position-only records’ section in Commentary for more
-            ;; explanation.
+            ;; If this record is position-only, we skip it and don’t
+            ;; add a mod for it. Effectively taking it out of the undo
+            ;; tree. Read ‘Position-only records’ section in
+            ;; Commentary for more explanation.
             (cl-assert (not (null (car undo-list))))
             (push (make-vundo-m :undo-list undo-list)
                   new-mlist))
           ;; Skip through the content of this modification.
           (while (car undo-list)
-	    (if (and (consp (car undo-list)) (eq (caar undo-list) t))
-		(setq saved t))		; a modification timestamp!
+            ;; Is this entry a timestamp?
+	        (when (and (consp (car undo-list)) (eq (caar undo-list) t))
+		      (setq saved t))
             (setq undo-list (cdr undo-list))
             (cl-incf uidx))
-	  (when (and saved (not pos-only))
-	    (setf (vundo-m-saved (car new-mlist)) t)))))
+          ;; If this modification contains a timestamp, the previous
+          ;; state is saved to file.
+	      (when (and saved (not pos-only))
+	        (setf (vundo-m-prev-saved-p (car new-mlist)) t)))))
     ;; Convert to vector.
     (vconcat mod-list new-mlist)))
 
@@ -545,9 +551,11 @@ Translate according to `vundo-glyph-alist'."
              (node-last-child-p
               (if parent
                   (eq node (car (last (vundo-m-children parent))))))
-	     (node-face
-	      (if (and children (vundo-m-saved (car children)))
-		  'vundo-saved 'vundo-node)))
+             ;; If next node’s prev-saved-p is t, this node represents
+             ;; a saved state.
+	         (node-face
+	          (if (and children (vundo-m-prev-saved-p (car children)))
+		          'vundo-saved 'vundo-node)))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
         (let ((col (max 0 (1- (current-column)))))
