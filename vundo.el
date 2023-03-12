@@ -344,7 +344,7 @@ If MOD-LIST non-nil, extend on MOD-LIST."
       (when (or (null n) (< uidx n))
         ;; Add modification.
 	    (let ((pos-only (vundo--position-only-p undo-list))
-              (saved nil))
+              (contains-timestamp nil))
           (unless pos-only
             ;; If this record is position-only, we skip it and don’t
             ;; add a mod for it. Effectively taking it out of the undo
@@ -357,12 +357,12 @@ If MOD-LIST non-nil, extend on MOD-LIST."
           (while (car undo-list)
             ;; Is this entry a timestamp?
 	        (when (and (consp (car undo-list)) (eq (caar undo-list) t))
-		      (setq saved t))
+		      (setq contains-timestamp t))
             (setq undo-list (cdr undo-list))
             (cl-incf uidx))
           ;; If this modification contains a timestamp, the previous
           ;; state is saved to file.
-	      (when (and saved (not pos-only))
+	      (when (and contains-timestamp (not pos-only))
 	        (setf (vundo-m-prev-saved-p (car new-mlist)) t)))))
     ;; Convert to vector.
     (vconcat mod-list new-mlist)))
@@ -551,10 +551,13 @@ Translate according to `vundo-glyph-alist'."
              (node-last-child-p
               (if parent
                   (eq node (car (last (vundo-m-children parent))))))
-             ;; If next node’s prev-saved-p is t, this node represents
-             ;; a saved state.
+             ;; If next mod’s prev-saved-p is t, this mod/node
+             ;; represents a saved state.
+             (next-mod (let ((idx (1+ (vundo-m-idx node))))
+                         (when (< idx (length mod-list))
+                           (aref mod-list idx))))
 	         (node-face
-	          (if (and children (vundo-m-prev-saved-p (car children)))
+	          (if (and next-mod (vundo-m-prev-saved-p next-mod))
 		          'vundo-saved 'vundo-node)))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
