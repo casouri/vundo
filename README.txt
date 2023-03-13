@@ -1,3 +1,5 @@
+Vundo is now available on ELPA!
+
 Vundo (visual undo) displays the undo history as a tree and lets you
 move in the tree to go back to previous buffer states. To use vundo,
 type M-x vundo RET in the buffer you want to undo. An undo tree buffer
