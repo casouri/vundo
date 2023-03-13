@@ -200,20 +200,22 @@
     (vertical-stem . ?|)
     (continued-vertical-stem . ?|)
     (branch . ?|)
+    (continued-branch . ?|)
     (last-branch . ?`)
-    (continued-branch . ?'))
+    (continued-last-branch . ?'))
   "ASCII symbols to draw vundo tree.")
 
 (defconst vundo-unicode-symbols
   '((selected-node . ?●)
     (node . ?○)
     (horizontal-stem . ?─)
-    (continued-horizontal-stem . ?═)
+    (continued-horizontal-stem . ?━)
     (vertical-stem . ?│)
-    (continued-vertical-stem . ?║)
+    (continued-vertical-stem . ?┃)
     (branch . ?├)
+    (continued-branch . ?┡)
     (last-branch . ?└)
-    (continued-branch . ?╚))
+    (continued-last-branch . ?┗))
   "Unicode symbols to draw vundo tree.")
 
 (defcustom vundo-compact-display nil
@@ -514,12 +516,13 @@ Translate according to `vundo-glyph-alist'."
                     (?○ 'node)
                     (?● 'selected-node)
                     (?─ 'horizontal-stem)
-		    (?═ 'continued-horizontal-stem)
+		    (?━ 'continued-horizontal-stem)
                     (?│ 'vertical-stem)
-		    (?║ 'continued-vertical-stem)
+		    (?┃ 'continued-vertical-stem)
                     (?├ 'branch)
+		    (?┡ 'continued-branch)
                     (?└ 'last-branch)
-		    (?╚ 'continued-branch))
+		    (?┗ 'continued-last-branch))
                   vundo-glyph-alist)))
               text 'string))
 
@@ -538,8 +541,8 @@ Translate according to `vundo-glyph-alist'."
 	     (siblings (if parent (vundo-m-children parent)))
              (node-last-child-p
               (if parent (eq node (car (last siblings)))))
-	     (node-only-child-p
-	      (if parent (eq (length siblings) 1))))
+	     (node-first-child-p
+	      (if parent (eq node (car siblings)))))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
         (let ((col (max 0 (1- (current-column)))))
@@ -556,7 +559,7 @@ Translate according to `vundo-glyph-alist'."
                 (unless (looking-at "$")
                   (delete-char 1))
                 (insert (propertize (vundo--translate
-				     (if node-only-child-p "║" "│"))
+				     (if node-first-child-p "┃" "│"))
                                     'face 'vundo-stem)))
               ;; Make room for inserting the new node.
               (unless (looking-at "$")
@@ -573,11 +576,16 @@ Translate according to `vundo-glyph-alist'."
                 (delete-char -1)
                 (insert (propertize
                          (vundo--translate
-                          (if node-last-child-p
-                              (if node-only-child-p
-				  (if vundo-compact-display "╚═" "╚══")
-				(if vundo-compact-display "└─" "└──"))
-                            (if vundo-compact-display "├─" "├──")))
+			  (cond
+			   ;; only child on a broken line
+			   ((and node-last-child-p node-first-child-p)
+			    (if vundo-compact-display "┗━" "┗━━"))
+			   ;; normal last child
+			   (node-last-child-p (if vundo-compact-display "└─" "└──"))
+			   ;; a first child on a broken line
+			   (node-first-child-p (if vundo-compact-display "┡━" "┡━━"))
+			   ;; normal middle child
+			   (t (if vundo-compact-display "├─" "├──"))))
                          'face 'vundo-stem))
                 (insert (propertize (vundo--translate "○")
                                     'face 'vundo-node))))))
