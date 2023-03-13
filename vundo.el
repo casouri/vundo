@@ -531,7 +531,10 @@ Translate according to `vundo-glyph-alist'."
                   (eq node (car (last (vundo-m-children parent)))))))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
-        (let ((col (max 0 (1- (current-column)))))
+        (let ((col (max 0 (1- (current-column))))
+              (room-for-another-rx
+               (rx-to-string
+                `(or (>= ,(if vundo-compact-display 3 4) ?\s) eol))))
           (if (null parent)
               (insert (propertize (vundo--translate "○")
                                   'face 'vundo-node))
@@ -540,12 +543,20 @@ Translate according to `vundo-glyph-alist'."
               ;; Example: 1--2--3  Here we want to add a
               ;;             |     child to 1 but is blocked
               ;;             +--4  by that plus sign.
-              (while (not (looking-at (rx (or "    " eol))))
+              (while (not (looking-at room-for-another-rx))
                 (vundo--next-line-at-column col)
-                (unless (looking-at "$")
-                  (delete-char 1))
-                (insert (propertize (vundo--translate "│")
-                                    'face 'vundo-stem)))
+                ;; When we go down, we could encounter space, EOL, │,
+                ;; ├, or └. Space and EOL should be replaced by │, ├
+                ;; and └ should be replaced by ├.
+                (let ((replace-char
+                       (if (looking-at
+                            (rx-to-string
+                             `(or ,(vundo--translate "├")
+                                  ,(vundo--translate "└"))))
+                           (vundo--translate "├")
+                         (vundo--translate "│"))))
+                  (unless (eolp) (delete-char 1))
+                  (insert (propertize replace-char 'face 'vundo-stem))))
               ;; Make room for inserting the new node.
               (unless (looking-at "$")
                 (delete-char (if vundo-compact-display 2 3)))
