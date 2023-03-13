@@ -196,20 +196,24 @@
   '((selected-node . ?x)
     (node . ?o)
     (horizontal-stem . ?-)
+    (continued-horizontal-stem . ?=)
     (vertical-stem . ?|)
+    (continued-vertical-stem . ?|)
     (branch . ?|)
     (last-branch . ?`)
-    (continued . ?'))
+    (continued-branch . ?'))
   "ASCII symbols to draw vundo tree.")
 
 (defconst vundo-unicode-symbols
   '((selected-node . ?●)
     (node . ?○)
     (horizontal-stem . ?─)
+    (continued-horizontal-stem . ?═)
     (vertical-stem . ?│)
+    (continued-vertical-stem . ?║)
     (branch . ?├)
     (last-branch . ?└)
-    (continued . ?╰))
+    (continued-branch . ?╚))
   "Unicode symbols to draw vundo tree.")
 
 (defcustom vundo-compact-display nil
@@ -510,10 +514,12 @@ Translate according to `vundo-glyph-alist'."
                     (?○ 'node)
                     (?● 'selected-node)
                     (?─ 'horizontal-stem)
+		    (?═ 'continued-horizontal-stem)
                     (?│ 'vertical-stem)
+		    (?║ 'continued-vertical-stem)
                     (?├ 'branch)
                     (?└ 'last-branch)
-		    (?╰ 'continued))
+		    (?╚ 'continued-branch))
                   vundo-glyph-alist)))
               text 'string))
 
@@ -549,7 +555,8 @@ Translate according to `vundo-glyph-alist'."
                 (vundo--next-line-at-column col)
                 (unless (looking-at "$")
                   (delete-char 1))
-                (insert (propertize (vundo--translate "│")
+                (insert (propertize (vundo--translate
+				     (if node-only-child-p "║" "│"))
                                     'face 'vundo-stem)))
               ;; Make room for inserting the new node.
               (unless (looking-at "$")
@@ -568,7 +575,7 @@ Translate according to `vundo-glyph-alist'."
                          (vundo--translate
                           (if node-last-child-p
                               (if node-only-child-p
-				  (if vundo-compact-display "╰─" "╰──")
+				  (if vundo-compact-display "╚═" "╚══")
 				(if vundo-compact-display "└─" "└──"))
                             (if vundo-compact-display "├─" "├──")))
                          'face 'vundo-stem))
