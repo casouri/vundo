@@ -198,7 +198,8 @@
     (horizontal-stem . ?-)
     (vertical-stem . ?|)
     (branch . ?|)
-    (last-branch . ?`))
+    (last-branch . ?`)
+    (continued . ?'))
   "ASCII symbols to draw vundo tree.")
 
 (defconst vundo-unicode-symbols
@@ -207,7 +208,8 @@
     (horizontal-stem . ?─)
     (vertical-stem . ?│)
     (branch . ?├)
-    (last-branch . ?└))
+    (last-branch . ?└)
+    (continued . ?╰))
   "Unicode symbols to draw vundo tree.")
 
 (defcustom vundo-compact-display nil
@@ -510,7 +512,8 @@ Translate according to `vundo-glyph-alist'."
                     (?─ 'horizontal-stem)
                     (?│ 'vertical-stem)
                     (?├ 'branch)
-                    (?└ 'last-branch))
+                    (?└ 'last-branch)
+		    (?╰ 'continued))
                   vundo-glyph-alist)))
               text 'string))
 
@@ -526,9 +529,11 @@ Translate according to `vundo-glyph-alist'."
              (children (vundo-m-children node))
              (parent (vundo-m-parent node))
              ;; Is NODE the last child of PARENT?
+	     (siblings (if parent (vundo-m-children parent)))
              (node-last-child-p
-              (if parent
-                  (eq node (car (last (vundo-m-children parent)))))))
+              (if parent (eq node (car (last siblings)))))
+	     (node-only-child-p
+	      (if parent (eq (length siblings) 1))))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
         (let ((col (max 0 (1- (current-column)))))
@@ -562,7 +567,9 @@ Translate according to `vundo-glyph-alist'."
                 (insert (propertize
                          (vundo--translate
                           (if node-last-child-p
-                              (if vundo-compact-display "└─" "└──")
+                              (if node-only-child-p
+				  (if vundo-compact-display "╰─" "╰──")
+				(if vundo-compact-display "└─" "└──"))
                             (if vundo-compact-display "├─" "├──")))
                          'face 'vundo-stem))
                 (insert (propertize (vundo--translate "○")
