@@ -568,7 +568,7 @@ Translate according to `vundo-glyph-alist'."
               (if (eq (point) planned-point)
                   (insert (propertize
                            (vundo--translate
-                            (if vundo-compact-display "─" "──"))
+                            (if vundo-compact-display "━" "━━"))
                            'face 'vundo-stem)
                           (propertize (vundo--translate "○")
                                       'face 'vundo-node))
