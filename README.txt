@@ -16,7 +16,7 @@ should pop up. To move around, type:
 
   q   to quit, you can also type C-g
 
-  [remap save-buffer]
+  C-c C-s (or whatever binding you used for save-buffer)
       to save the buffer at the current undo state
 
 n/p may need some more explanation. In the following tree, n/p can
@@ -33,6 +33,10 @@ By default, you need to press RET to “commit” your change and if you
 quit with q or C-g, the changes made by vundo are rolled back. You can
 set ‘vundo-roll-back-on-quit’ to nil to disable rolling back.
 
+You might see some green nodes in the tree, those are the buffer
+states that have been saved to disk; the last saved node is emphasized
+in bold. You can type "l" to jump to the last saved node.
+
 Note: vundo.el requires Emacs 28.
 
 Customizable faces:
@@ -41,6 +45,8 @@ Customizable faces:
 - vundo-node
 - vundo-stem
 - vundo-highlight
+- vundo-saved
+- vundo-last-saved
 
 If you want to use prettier Unicode characters to draw the tree like
 this:
