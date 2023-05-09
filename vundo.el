@@ -271,9 +271,9 @@ By default, the tree is drawn with ASCII characters like this:
 Set this variable to `vundo-unicode-symbols' to use Unicode
 characters."
   :type `(alist :tag "Translation alist"
-		        :key-type (symbol :tag "Part of tree")
-		        :value-type (character :tag "Draw using")
-		        :options ,(mapcar #'car vundo-unicode-symbols)))
+                        :key-type (symbol :tag "Part of tree")
+                        :value-type (character :tag "Draw using")
+                        :options ,(mapcar #'car vundo-unicode-symbols)))
 
 (defcustom vundo-pre-enter-hook nil
   "List of functions to call when entering vundo.
@@ -578,84 +578,84 @@ corresponding to the index of the last saved node."
     (setq vundo--last-saved-idx -1)
     (while node-queue
       (let* ((node (pop node-queue))
-	     (children (vundo-m-children node))
-	     (parent (vundo-m-parent node))
-	     (siblings (and parent (vundo-m-children parent)))
-	     (only-child-p (and parent (eq (length siblings) 1)))
-	     (node-last-child-p (and parent (eq node (car (last siblings)))))
-	     (node-idx (vundo-m-idx node))
-	     (saved-p (and vundo-highlight-saved-nodes
-			   (vundo--mod-timestamp mod-list node-idx)))
-	     (node-face (if saved-p 'vundo-saved 'vundo-node))
+             (children (vundo-m-children node))
+             (parent (vundo-m-parent node))
+             (siblings (and parent (vundo-m-children parent)))
+             (only-child-p (and parent (eq (length siblings) 1)))
+             (node-last-child-p (and parent (eq node (car (last siblings)))))
+             (node-idx (vundo-m-idx node))
+             (saved-p (and vundo-highlight-saved-nodes
+                           (vundo--mod-timestamp mod-list node-idx)))
+             (node-face (if saved-p 'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-stem-branch)))
-	(when (and saved-p (> node-idx last-saved-idx))
-	  (setq last-saved-idx node-idx))
-	;; Go to parent.
-	(if parent (goto-char (vundo-m-point parent)))
-	(let ((col (max 0 (1- (current-column))))
-	      (room-for-another-rx
-	       (rx-to-string
-		`(or (>= ,(if vundo-compact-display 3 4) ?\s) eol))))
-	  (if (null parent)
-	      (insert (propertize (vundo--translate "○")
-				  'face node-face))
-	    (let ((planned-point (point)))
-	      ;; If a node is blocking, try next line.
-	      ;; Example: 1--2--3  Here we want to add a
-	      ;;             |     child to 1 but is blocked
-	      ;;             +--4  by that plus sign.
-	      (while (not (looking-at room-for-another-rx))
-		(vundo--next-line-at-column col)
-		;; When we go down, we could encounter space, EOL, │,
-		;; ├, or └. Space and EOL should be replaced by │, ├
-		;; and └ should be replaced by ├.
-		(let ((replace-char
-		       (if (looking-at
-			    (rx-to-string
-			     `(or ,(vundo--translate "├")
-				  ,(vundo--translate "└"))))
-			   (vundo--translate "├")
-			 (vundo--translate "│"))))
-		  (unless (eolp) (delete-char 1))
-		  (insert (propertize replace-char 'face stem-face))))
-	      ;; Make room for inserting the new node.
-	      (unless (looking-at "$")
-		(delete-char (if vundo-compact-display 2 3)))
-	      ;; Insert the new node.
-	      (if (eq (point) planned-point)
-		  (insert (propertize
-			   (vundo--translate
-			    (if vundo-compact-display "─" "──"))
-			   'face stem-face)
-			  (propertize (vundo--translate "○")
-				      'face node-face))
-		;; We must break the line.  Delete the previously inserted char.
-		(delete-char -1)
-		(insert (propertize
-			 (vundo--translate
-			  (if node-last-child-p
-			      (if vundo-compact-display "└─" "└──")
-			    (if vundo-compact-display "├─" "├──")))
-			 'face stem-face))
-		(insert (propertize (vundo--translate "○")
-				    'face node-face))))))
-	;; Store point so we can later come back to this node.
-	(setf (vundo-m-point node) (point))
-	;; Associate the text node in buffer with the node object.
-	(vundo--put-node-at-point node)
-	;; Depth-first search.
-	(setq node-queue (append children node-queue))))
+        (when (and saved-p (> node-idx last-saved-idx))
+          (setq last-saved-idx node-idx))
+        ;; Go to parent.
+        (if parent (goto-char (vundo-m-point parent)))
+        (let ((col (max 0 (1- (current-column))))
+              (room-for-another-rx
+               (rx-to-string
+                `(or (>= ,(if vundo-compact-display 3 4) ?\s) eol))))
+          (if (null parent)
+              (insert (propertize (vundo--translate "○")
+                                  'face node-face))
+            (let ((planned-point (point)))
+              ;; If a node is blocking, try next line.
+              ;; Example: 1--2--3  Here we want to add a
+              ;;             |     child to 1 but is blocked
+              ;;             +--4  by that plus sign.
+              (while (not (looking-at room-for-another-rx))
+                (vundo--next-line-at-column col)
+                ;; When we go down, we could encounter space, EOL, │,
+                ;; ├, or └. Space and EOL should be replaced by │, ├
+                ;; and └ should be replaced by ├.
+                (let ((replace-char
+                       (if (looking-at
+                            (rx-to-string
+                             `(or ,(vundo--translate "├")
+                                  ,(vundo--translate "└"))))
+                           (vundo--translate "├")
+                         (vundo--translate "│"))))
+                  (unless (eolp) (delete-char 1))
+                  (insert (propertize replace-char 'face stem-face))))
+              ;; Make room for inserting the new node.
+              (unless (looking-at "$")
+                (delete-char (if vundo-compact-display 2 3)))
+              ;; Insert the new node.
+              (if (eq (point) planned-point)
+                  (insert (propertize
+                           (vundo--translate
+                            (if vundo-compact-display "─" "──"))
+                           'face stem-face)
+                          (propertize (vundo--translate "○")
+                                      'face node-face))
+                ;; We must break the line.  Delete the previously inserted char.
+                (delete-char -1)
+                (insert (propertize
+                         (vundo--translate
+                          (if node-last-child-p
+                              (if vundo-compact-display "└─" "└──")
+                            (if vundo-compact-display "├─" "├──")))
+                         'face stem-face))
+                (insert (propertize (vundo--translate "○")
+                                    'face node-face))))))
+        ;; Store point so we can later come back to this node.
+        (setf (vundo-m-point node) (point))
+        ;; Associate the text node in buffer with the node object.
+        (vundo--put-node-at-point node)
+        ;; Depth-first search.
+        (setq node-queue (append children node-queue))))
 
     ;; If the associated buffer is unmodified, the last node must be
     ;; the last saved nodel even though it doesn’t have a next node
     ;; with a timestamp to indicate that.
     (setq vundo--last-saved-idx
-	  (if orig-buffer-modified
-	      (if (> last-saved-idx 0) last-saved-idx nil)
-	    (vundo-m-idx (vundo--current-node mod-list))))
+          (if orig-buffer-modified
+              (if (> last-saved-idx 0) last-saved-idx nil)
+            (vundo-m-idx (vundo--current-node mod-list))))
     ;; Update the face of the last saved node (if any).
     (when (and vundo-highlight-saved-nodes
-	       vundo--last-saved-idx)
+               vundo--last-saved-idx)
       (vundo--highlight-last-saved-node
        (aref mod-list vundo--last-saved-idx)))))
 
@@ -845,7 +845,7 @@ This moves the overlay `vundo--highlight-last-saved-overlay'."
   (let ((node-pt (vundo-m-point node)))
     (unless vundo--highlight-last-saved-overlay
       (setq vundo--highlight-last-saved-overlay
-	    (make-overlay (1- node-pt) node-pt))
+            (make-overlay (1- node-pt) node-pt))
       (overlay-put vundo--highlight-last-saved-overlay 'face 'vundo-last-saved))
     (move-overlay vundo--highlight-last-saved-overlay (1- node-pt) node-pt)))
 
