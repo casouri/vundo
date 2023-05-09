@@ -173,6 +173,10 @@
 (defface vundo-stem '((t . (:inherit vundo-default)))
   "Face for stems between nodes in the undo tree.")
 
+(defface vundo-branch-stem
+  '((t (:inherit vundo-stem :weight bold)))
+  "Face for branching stems in the undo tree.")
+
 (defface vundo-highlight
   '((((background light)) .
      (:inherit vundo-node :weight bold :foreground "red"))
@@ -267,9 +271,9 @@ By default, the tree is drawn with ASCII characters like this:
 Set this variable to `vundo-unicode-symbols' to use Unicode
 characters."
   :type `(alist :tag "Translation alist"
-		        :key-type (symbol :tag "Part of tree")
-		        :value-type (character :tag "Draw using")
-		        :options ,(mapcar #'car vundo-unicode-symbols)))
+                :key-type (symbol :tag "Part of tree")
+                :value-type (character :tag "Draw using")
+                :options ,(mapcar #'car vundo-unicode-symbols)))
 
 (defcustom vundo-pre-enter-hook nil
   "List of functions to call when entering vundo.
@@ -563,7 +567,7 @@ Translate according to `vundo-glyph-alist'."
 (defun vundo--draw-tree (mod-list orig-buffer-modified)
   "Draw the tree in MOD-LIST in current buffer.
 ORIG-BUFFER-MODIFIED is t if the original buffer is not saved to
-the disk. Set `vundo--last-saved-idx' by side-effect,
+the disk.  Set `vundo--last-saved-idx' by side-effect,
 corresponding to the index of the last saved node."
   (let* ((root (aref mod-list 0))
          (node-queue (list root))
@@ -576,14 +580,14 @@ corresponding to the index of the last saved node."
       (let* ((node (pop node-queue))
              (children (vundo-m-children node))
              (parent (vundo-m-parent node))
-             ;; Is NODE the last child of PARENT?
-             (node-last-child-p
-              (if parent
-                  (eq node (car (last (vundo-m-children parent))))))
+             (siblings (and parent (vundo-m-children parent)))
+             (only-child-p (and parent (eq (length siblings) 1)))
+             (node-last-child-p (and parent (eq node (car (last siblings)))))
              (node-idx (vundo-m-idx node))
              (saved-p (and vundo-highlight-saved-nodes
                            (vundo--mod-timestamp mod-list node-idx)))
-             (node-face  (if saved-p 'vundo-saved 'vundo-node)))
+             (node-face (if saved-p 'vundo-saved 'vundo-node))
+             (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
         (when (and saved-p (> node-idx last-saved-idx))
           (setq last-saved-idx node-idx))
         ;; Go to parent.
@@ -613,7 +617,7 @@ corresponding to the index of the last saved node."
                            (vundo--translate "├")
                          (vundo--translate "│"))))
                   (unless (eolp) (delete-char 1))
-                  (insert (propertize replace-char 'face 'vundo-stem))))
+                  (insert (propertize replace-char 'face stem-face))))
               ;; Make room for inserting the new node.
               (unless (looking-at "$")
                 (delete-char (if vundo-compact-display 2 3)))
@@ -622,17 +626,17 @@ corresponding to the index of the last saved node."
                   (insert (propertize
                            (vundo--translate
                             (if vundo-compact-display "─" "──"))
-                           'face 'vundo-stem)
+                           'face stem-face)
                           (propertize (vundo--translate "○")
                                       'face node-face))
-                ;; Delete the previously inserted |.
+                ;; We must break the line.  Delete the previously inserted char.
                 (delete-char -1)
                 (insert (propertize
                          (vundo--translate
                           (if node-last-child-p
                               (if vundo-compact-display "└─" "└──")
                             (if vundo-compact-display "├─" "├──")))
-                         'face 'vundo-stem))
+                         'face stem-face))
                 (insert (propertize (vundo--translate "○")
                                     'face node-face))))))
         ;; Store point so we can later come back to this node.
@@ -841,7 +845,7 @@ This moves the overlay `vundo--highlight-last-saved-overlay'."
   (let ((node-pt (vundo-m-point node)))
     (unless vundo--highlight-last-saved-overlay
       (setq vundo--highlight-last-saved-overlay
-	    (make-overlay (1- node-pt) node-pt))
+            (make-overlay (1- node-pt) node-pt))
       (overlay-put vundo--highlight-last-saved-overlay 'face 'vundo-last-saved))
     (move-overlay vundo--highlight-last-saved-overlay (1- node-pt) node-pt)))
 
