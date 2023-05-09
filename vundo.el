@@ -173,6 +173,10 @@
 (defface vundo-stem '((t . (:inherit vundo-default)))
   "Face for stems between nodes in the undo tree.")
 
+(defface vundo-stem-branch
+  '((t (:inherit vundo-stem :weight bold)))
+  "Face for branching stems in the undo tree.")
+
 (defface vundo-highlight
   '((((background light)) .
      (:inherit vundo-node :weight bold :foreground "red"))
@@ -214,26 +218,18 @@ most recent such node, which receives the face `vundo-last-saved'."
   '((selected-node . ?x)
     (node . ?o)
     (horizontal-stem . ?-)
-    (sibling-horizontal-stem . ?=)
     (vertical-stem . ?|)
-    (sibling-vertical-stem . ?|)
     (branch . ?|)
-    (sibling-branch . ?|)
-    (last-branch . ?`)
-    (sibling-last-branch . ?'))
+    (last-branch . ?`))
   "ASCII symbols to draw vundo tree.")
 
 (defconst vundo-unicode-symbols
   '((selected-node . ?●)
     (node . ?○)
     (horizontal-stem . ?─)
-    (sibling-horizontal-stem . ?━)
     (vertical-stem . ?│)
-    (sibling-vertical-stem . ?┃)
     (branch . ?├)
-    (sibling-branch . ?┣)
-    (last-branch . ?└)
-    (sibling-last-branch . ?┗))
+    (last-branch . ?└))
   "Unicode symbols to draw vundo tree.")
 
 (defcustom vundo-compact-display nil
@@ -551,13 +547,9 @@ Translate according to `vundo-glyph-alist'."
                     (?○ 'node)
                     (?● 'selected-node)
                     (?─ 'horizontal-stem)
-		    (?━ 'sibling-horizontal-stem)
                     (?│ 'vertical-stem)
-		    (?┃ 'sibling-vertical-stem)
                     (?├ 'branch)
-		    (?┣ 'sibling-branch)
-                    (?└ 'last-branch)
-		    (?┗ 'sibling-last-branch))
+                    (?└ 'last-branch))
                   vundo-glyph-alist)))
               text 'string))
 
@@ -594,7 +586,8 @@ corresponding to the index of the last saved node."
 	     (node-idx (vundo-m-idx node))
 	     (saved-p (and vundo-highlight-saved-nodes
 			   (vundo--mod-timestamp mod-list node-idx)))
-	     (node-face (if saved-p 'vundo-saved 'vundo-node)))
+	     (node-face (if saved-p 'vundo-saved 'vundo-node))
+             (stem-face (if only-child-p 'vundo-stem 'vundo-stem-branch)))
 	(when (and saved-p (> node-idx last-saved-idx))
 	  (setq last-saved-idx node-idx))
 	;; Go to parent.
@@ -619,14 +612,12 @@ corresponding to the index of the last saved node."
 		(let ((replace-char
 		       (if (looking-at
 			    (rx-to-string
-			     `(or ,(vundo--translate "┣")
-				  ,(vundo--translate "├")
-				  ,(vundo--translate "┗")
+			     `(or ,(vundo--translate "├")
 				  ,(vundo--translate "└"))))
-			   (vundo--translate (if only-child-p "├" "┣"))
-			 (vundo--translate (if only-child-p "│" "┃")))))
+			   (vundo--translate "├")
+			 (vundo--translate "│"))))
 		  (unless (eolp) (delete-char 1))
-		  (insert (propertize replace-char 'face 'vundo-stem))))
+		  (insert (propertize replace-char 'face stem-face))))
 	      ;; Make room for inserting the new node.
 	      (unless (looking-at "$")
 		(delete-char (if vundo-compact-display 2 3)))
@@ -634,26 +625,18 @@ corresponding to the index of the last saved node."
 	      (if (eq (point) planned-point)
 		  (insert (propertize
 			   (vundo--translate
-			    (if only-child-p
-				(if vundo-compact-display "─" "──")
-			      (if vundo-compact-display "━" "━━")))
-			   'face 'vundo-stem)
+			    (if vundo-compact-display "─" "──"))
+			   'face stem-face)
 			  (propertize (vundo--translate "○")
 				      'face node-face))
 		;; We must break the line.  Delete the previously inserted char.
 		(delete-char -1)
 		(insert (propertize
 			 (vundo--translate
-			  (cond
-			   ;; only child on a broken line: no highlight
-			   (only-child-p
-			    (if vundo-compact-display "└─" "└──"))
-			   ;; last child of siblings
-			   (node-last-child-p
-			    (if vundo-compact-display "┗━" "┗━━"))
-			   ;; middle child
-			   (t (if vundo-compact-display "┣━" "┣━━"))))
-			 'face 'vundo-stem))
+			  (if node-last-child-p
+			      (if vundo-compact-display "└─" "└──")
+			    (if vundo-compact-display "├─" "├──")))
+			 'face stem-face))
 		(insert (propertize (vundo--translate "○")
 				    'face node-face))))))
 	;; Store point so we can later come back to this node.
