@@ -379,7 +379,7 @@ If MOD-LIST non-nil, extend on MOD-LIST."
             (cl-incf uidx))
           ;; If this modification contains a timestamp, the previous
           ;; state is saved to file.
-          (when (and mod-timestamp (not pos-only))
+          (when (and mod-timestamp (> mod-timestamp 0) (not pos-only))
             (setf (vundo-m-timestamp (car new-mlist)) mod-timestamp)))))
     ;; Convert to vector.
     (vconcat mod-list new-mlist)))
