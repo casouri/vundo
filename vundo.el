@@ -1111,17 +1111,35 @@ the INCREMENTAL option in `vundo--refresh-buffer' anymore."
                          return node
                          finally return nil)))
       (with-current-buffer buffer
-        (let ((tail buffer-undo-list))
-	  (setq buffer-undo-list
-		(vundo-m-undo-list possible-trim-point))
-	  (when vundo--message
+        (let ((tail buffer-undo-list)
+              (cnt 0)
+              ts-trimmed bul-tss)
+          ;; (message "Before Trim: TIMESTAMPS REMAINING: %S"
+          ;;       (cl-loop for el in buffer-undo-list
+          ;;                    if (and (consp el) (eq (car el) t) (consp (cdr el)))
+          ;;                    collect (format-time-string "%F %r" (cdr el))))
+          (setq buffer-undo-list
+                (vundo-m-undo-list possible-trim-point))
+
+          (setq bul-tss
+                (cl-loop for el in buffer-undo-list
+                         if (and (consp el) (eq (car el) t) (consp (cdr el)))
+                         collect (cdr el)))
+          (when vundo--message
             (message "Trimmed to: %s"
                      (vundo-m-idx possible-trim-point))
-	    (while (and tail (not (eq tail buffer-undo-list)))
-	      (when (and (consp (car tail)) (eq (caar tail) t) (consp (cdar tail)))
-		(message "!!! Trimmed a TimeStamp: %s"
-			 (format-time-string "%F %r" (cdar tail))))
-	      (setq tail (cdr tail)))))))))
+            (while (and tail (not (eq tail buffer-undo-list)))
+              (cl-incf cnt)
+              (when (and (consp (car tail)) (eq (caar tail) t) (consp (cdar tail))
+                         (not (member (cdar tail) bul-tss)))
+                (setq ts-trimmed t)
+                (message "!!! Lost a Unique TimeStamp: %s [%S]"
+                         (format-time-string "%F %r" (cdar tail)) (cdar tail)))
+              (setq tail (cdr tail)))
+            (when ts-trimmed
+              (message "Trimmed %d elements; TIMESTAMPS REMAINING: %S" cnt
+                       (cl-loop for x in bul-tss
+                                collect (format-time-string "%F %r" x))))))))))
 
 (defun vundo-forward (arg)
   "Move forward ARG nodes in the undo tree.
