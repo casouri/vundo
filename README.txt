@@ -21,12 +21,13 @@ should pop up. To move around, type:
 
 n/p may need some more explanation. In the following tree, n/p can
 move between A and B because they share a parent (thus at a branching
-point), but not C and D.
+point), but not C and D. To make it clear, branches you can switch
+between are highlighted with bold face.
 
          A  C
-    ──○──○──○──○──○
-      │  ↕︎
-      └──○──○──○
+    ──○━━○──○──○──○
+      ┃  ↕︎
+      ┗━━○──○──○
          B  D
 
 By default, you need to press RET to “commit” your change and if you
