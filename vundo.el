@@ -1117,6 +1117,11 @@ the INCREMENTAL option in `vundo--refresh-buffer' anymore."
         (message "Trimmed to: %s"
                  (vundo-m-idx possible-trim-point))))))
 
+(defvar vundo-after-undo-functions nil
+  "Special hook that runs after `vundo' motions.
+Functions aasigned to this hook are called with one argument: the
+original buffer `vundo' operates on.")
+
 (defun vundo-forward (arg)
   "Move forward ARG nodes in the undo tree.
 If ARG < 0, move backward."
@@ -1145,7 +1150,8 @@ If ARG < 0, move backward."
           vundo--orig-buffer dest vundo--prev-mod-list)
          ;; Refresh display.
          (vundo--refresh-buffer
-          vundo--orig-buffer (current-buffer) 'incremental))))))
+          vundo--orig-buffer (current-buffer) 'incremental))))
+   (run-hook-with-args 'vundo-after-undo-functions vundo--orig-buffer)))
 
 (defun vundo-backward (arg)
   "Move back ARG nodes in the undo tree.
@@ -1175,7 +1181,8 @@ If ARG < 0, move forward."
             vundo--orig-buffer dest vundo--prev-mod-list)
            (vundo--refresh-buffer
             vundo--orig-buffer (current-buffer)
-            'incremental)))))))
+            'incremental)))))
+   (run-hook-with-args 'vundo-after-undo-functions vundo--orig-buffer)))
 
 (defun vundo-previous (arg)
   "Move to node above the current one. Move ARG steps."
