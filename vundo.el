@@ -958,7 +958,7 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
   "Calculate the shortest route from FROM to TO node.
 Return (SOURCE STOP1 STOP2 ... DEST), meaning you should undo the
 modifications from DEST to SOURCE. Each STOP is an intermediate
-stop. Eg, (6 5 4 3). Return nil if no valid route."
+stop. Eg, (6 5 4 3). Return nil if there’s no valid route."
   (let (route-list)
     ;; Find all valid routes.
     (dolist (source (vundo--eqv-list-of from))
