@@ -701,7 +701,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
   (setq mode-line-format nil
         truncate-lines t
         cursor-type nil)
-  (jit-lock-mode -1)
+  (jit-lock-mode nil)
   (face-remap-add-relative 'default 'vundo-default)
 
   ;; Disable evil-mode, as normal-mode
