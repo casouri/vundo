@@ -282,9 +282,9 @@ the user invoked ‘vundo’, before every setup ‘vundo’ does."
   :type 'hook)
 
 (defcustom vundo-post-exit-hook nil
-  "List of functions to call when entering vundo.
+  "List of functions to call when exiting vundo.
 This hook runs in the original buffer the user invoked ‘vundo’,
-after every clean up the exiting function does. Ie, it is the
+after all the clean up the exiting function does. Ie, it is the
 very last thing that happens when vundo exists."
   :type 'hook)
 
