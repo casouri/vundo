@@ -689,8 +689,11 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "q") #'vundo-quit)
     (define-key map (kbd "C-g") #'vundo-quit)
     (define-key map (kbd "RET") #'vundo-confirm)
+    (define-key map (kbd "m") #'vundo-diff-mark)
+    (define-key map (kbd "u") #'vundo-diff-unmark)
+    (define-key map (kbd "d") #'vundo-diff)
     (define-key map (kbd "i") #'vundo--inspect)
-    (define-key map (kbd "d") #'vundo--debug)
+    (define-key map (kbd "D") #'vundo--debug)
 
     (define-key map [remap save-buffer] #'vundo-save)
     map)

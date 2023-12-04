@@ -50,6 +50,7 @@
 (defvar-local vundo-diff--highlight-overlay nil
   "Overlay used to highlight the selected node.")
 
+;;;###autoload
 (defun vundo-diff-mark (&optional node)
   "Mark NODE for vundo diff.
 NODE defaults to the current node."
@@ -69,6 +70,7 @@ NODE defaults to the current node."
                   (1- (vundo-m-point node))
                   (vundo-m-point node))))
 
+;;;###autoload
 (defun vundo-diff-unmark ()
   "Unmark the node marked for vundo diff."
   (interactive)
@@ -78,6 +80,7 @@ NODE defaults to the current node."
       (delete-overlay vundo-diff--highlight-overlay)
       (setq vundo-diff--highlight-overlay nil))))
 
+;;;###autoload
 (defun vundo-diff ()
   "Perform diff between marked and current buffer state.
 Displays in a separate diff buffer with name based on
@@ -142,15 +145,6 @@ the original buffer name."
             (insert diff-msg)))
         (kill-buffer mrkbuf)
         (display-buffer dbuf)))))
-
-;;;###autoload
-(define-minor-mode vundo-diff-mode
-  "Diff extension for vundo."
-  :global t
-  :group 'undo
-  (define-key vundo-mode-map (kbd "m") #'vundo-diff-mark)
-  (define-key vundo-mode-map (kbd "u") #'vundo-diff-unmark)
-  (define-key vundo-mode-map (kbd "d") #'vundo-diff))
 
 (provide 'vundo-diff)
 
