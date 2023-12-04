@@ -26,8 +26,8 @@
 ;;; Commentary:
 
 ;; vundo-diff provides simple on-demand diff between arbitray undo
-;; states in the vundo tree.  The additional key commands available
-;; are:
+;; states in the vundo tree.  The additional key commands made
+;; available are:
 ;;
 ;;    m  mark a node for diff
 ;;    u  unmark the marked node
