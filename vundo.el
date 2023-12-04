@@ -39,6 +39,11 @@
 ;;
 ;;   a   to go back to the last branching point
 ;;   e   to go forward to the end/tip of the branch
+;;   l   to go to the last saved node
+;;
+;;   m   to mark the current node for diff
+;;   u   to unmark the marked node
+;;   d   to show a diff between the marked (or parent) and current nodes
 ;;
 ;;   q   to quit, you can also type C-g
 ;;
@@ -88,9 +93,7 @@
 ;;
 ;; Vundo doesn’t need to be turned on all the time nor replace the undo
 ;; commands like undo-tree does. Vundo displays the tree horizontally,
-;; whereas undo-tree displays a tree vertically. Vundo doesn’t have many
-;; advanced features that undo-tree does (like showing diff), and most
-;; probably will not add those features in the future.
+;; whereas undo-tree displays a tree vertically.
 
 ;;; Developer:
 ;;
@@ -513,6 +516,36 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
                        (vundo--sort-mod (cons mod children)
                                         'reverse))))))))))
 
+;;; Timestamps
+;; buffer-undo-list contains "timestamp entries" like (t . TIMESTAMP)
+;; which capture the file modification time of the saved file which
+;; an undo changed.  During tree draw, we collect the last of these, and
+;; indicated nodes which had been saved specially.
+
+(defvar vundo--last-saved-idx)
+(defvar vundo--orig-buffer)
+
+(defun vundo--mod-timestamp (mod-list idx)
+  "Return a timestamp if the mod in MOD-LIST at IDX has a timestamp."
+  ;; If the next mod’s timestamp is non-nil, this mod/node
+  ;; represents a saved state.
+  (let* ((next-mod-idx (1+ idx))
+         (next-mod (when (< next-mod-idx (length mod-list))
+                     (aref mod-list next-mod-idx))))
+    (and next-mod (vundo-m-timestamp next-mod))))
+
+(defun vundo--node-timestamp (mod-list node)
+  "Return a timestamp from MOD-LIST for NODE, if any.
+In addition to undo-based timestamps, this includes the modtime of the
+current buffer (if unmodified)."
+  (let* ((idx (vundo-m-idx node))
+	 (current (vundo--current-node mod-list)))
+    (or (vundo--mod-timestamp mod-list idx)
+	(and (eq node current) (eq idx vundo--last-saved-idx)
+             (with-current-buffer vundo--orig-buffer
+	       (and (buffer-file-name)
+                    (not (buffer-modified-p))
+                    (visited-file-modtime)))))))
 ;;; Draw tree
 
 (defun vundo--put-node-at-point (node)
@@ -553,15 +586,6 @@ Translate according to `vundo-glyph-alist'."
                   vundo-glyph-alist)))
               text 'string))
 
-(defun vundo--mod-timestamp (mod-list idx)
-  "Return a timestamp if the mod in MOD-LIST at IDX has a timestramp."
-  ;; If the next mod’s timestamp is non-nil, this mod/node
-  ;; represents a saved state.
-  (let* ((next-mod-idx (1+ idx))
-         (next-mod (when (< next-mod-idx (length mod-list))
-                     (aref mod-list next-mod-idx))))
-    (and next-mod (vundo-m-timestamp next-mod))))
-
 (defvar vundo--last-saved-idx)
 
 (defun vundo--draw-tree (mod-list orig-buffer-modified)
@@ -584,11 +608,11 @@ corresponding to the index of the last saved node."
              (only-child-p (and parent (eq (length siblings) 1)))
              (node-last-child-p (and parent (eq node (car (last siblings)))))
              (node-idx (vundo-m-idx node))
-             (saved-p (and vundo-highlight-saved-nodes
-                           (vundo--mod-timestamp mod-list node-idx)))
+             (mod-ts (vundo--mod-timestamp mod-list node-idx))
+             (saved-p (and vundo-highlight-saved-nodes mod-ts))
              (node-face (if saved-p 'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
-        (when (and saved-p (> node-idx last-saved-idx))
+        (when (and mod-ts (> node-idx last-saved-idx))
           (setq last-saved-idx node-idx))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
@@ -647,8 +671,8 @@ corresponding to the index of the last saved node."
         (setq node-queue (append children node-queue))))
 
     ;; If the associated buffer is unmodified, the last node must be
-    ;; the last saved nodel even though it doesn’t have a next node
-    ;; with a timestamp to indicate that.
+    ;; the last saved node even though it doesn’t (yet) have a next
+    ;; node with a timestamp to indicate that.
     (setq vundo--last-saved-idx
           (if orig-buffer-modified
               (if (> last-saved-idx 0) last-saved-idx nil)
@@ -673,6 +697,9 @@ WINDOW is the window that was/is displaying the vundo buffer."
       (with-selected-window window
         (kill-buffer-and-window))))
 
+(declare-function vundo-diff "vundo-diff")
+(declare-function vundo-diff-mark "vundo-diff")
+(declare-function vundo-diff-unmark "vundo-diff")
 (defvar vundo-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "f") #'vundo-forward)
@@ -689,8 +716,11 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "q") #'vundo-quit)
     (define-key map (kbd "C-g") #'vundo-quit)
     (define-key map (kbd "RET") #'vundo-confirm)
+    (define-key map (kbd "m") #'vundo-diff-mark)
+    (define-key map (kbd "u") #'vundo-diff-unmark)
+    (define-key map (kbd "d") #'vundo-diff)
     (define-key map (kbd "i") #'vundo--inspect)
-    (define-key map (kbd "d") #'vundo--debug)
+    (define-key map (kbd "D") #'vundo--debug)
 
     (define-key map [remap save-buffer] #'vundo-save)
     map)
@@ -834,7 +864,7 @@ This function modifies `vundo--prev-mod-list',
                  'face 'vundo-highlight)
     ;; Make current node’s highlight override last saved node’s
     ;; highlight, should they collide.
-    (overlay-put vundo--highlight-overlay 'priority 1))
+    (overlay-put vundo--highlight-overlay 'priority 2))
   (move-overlay vundo--highlight-overlay
                 (1- (vundo-m-point node))
                 (vundo-m-point node)))
@@ -984,7 +1014,7 @@ stop. Eg, (6 5 4 3). Return nil if there’s no valid route."
 (defun vundo--list-subtract (l1 l2)
   "Return L1 - L2.
 
-\(vundo--list-subtract '(4 3 2 1) '(2 1))
+\(vundo--list-subtract \='(4 3 2 1) \='(2 1))
 => (4 3)"
   (let ((len1 (length l1))
         (len2 (length l2)))
@@ -1269,9 +1299,9 @@ Accepts the same interactive arfument ARG as ‘save-buffer’."
   (vundo--check-for-command
    (with-current-buffer vundo--orig-buffer
      (save-buffer arg)))
-  (when vundo-highlight-saved-nodes
-    (let* ((cur-node (vundo--current-node vundo--prev-mod-list)))
-      (setq vundo--last-saved-idx (vundo-m-idx cur-node))
+  (let* ((cur-node (vundo--current-node vundo--prev-mod-list)))
+    (setq vundo--last-saved-idx (vundo-m-idx cur-node))
+    (when vundo-highlight-saved-nodes
       (vundo--highlight-last-saved-node cur-node))))
 
 ;;; Debug
@@ -1295,9 +1325,7 @@ TYPE is the type of buffer you want."
              (mapcar #'vundo-m-idx (vundo--eqv-list-of node))
              (and (vundo-m-children node)
                   (mapcar #'vundo-m-idx (vundo-m-children node)))
-             (if-let* ((vundo-highlight-saved-nodes)
-                       (ts (vundo--mod-timestamp vundo--prev-mod-list
-                                                 (vundo-m-idx node)))
+             (if-let* ((ts (vundo--node-timestamp vundo--prev-mod-list node))
                        ((consp ts)))
                  (format " Saved: %s" (format-time-string "%F %r" ts))
                ""))))
