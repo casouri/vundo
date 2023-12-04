@@ -132,8 +132,7 @@ the original buffer name."
                                      'font-lock-face
                                      '(diff-file-header diff-header))
                          collect
-                         (if-let* ((vundo-highlight-saved-nodes)
-                                   (ts (vundo--mod-timestamp
+                         (if-let* ((ts (vundo--mod-timestamp
                                         vundo--prev-mod-list (vundo-m-idx x)))
                                    ((consp ts)))
                              (propertize
