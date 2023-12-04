@@ -99,8 +99,8 @@ the original buffer name."
         (vundo--move-to-node current marked orig vundo--prev-mod-list)
         (with-current-buffer mrkbuf
           (insert-buffer-substring-no-properties orig))
-        (vundo--refresh-buffer orig (current-buffer) 'incremental)
         (vundo--move-to-node marked current orig vundo--prev-mod-list)
+        (vundo--trim-undo-list orig current vundo--prev-mod-list)
         (vundo--refresh-buffer orig (current-buffer) 'incremental)
         (setq dbuf (diff-no-select (if swapped orig mrkbuf)
                                    (if swapped mrkbuf orig)
