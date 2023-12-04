@@ -1272,9 +1272,9 @@ Accepts the same interactive arfument ARG as ‘save-buffer’."
   (vundo--check-for-command
    (with-current-buffer vundo--orig-buffer
      (save-buffer arg)))
-  (when vundo-highlight-saved-nodes
-    (let* ((cur-node (vundo--current-node vundo--prev-mod-list)))
-      (setq vundo--last-saved-idx (vundo-m-idx cur-node))
+  (let* ((cur-node (vundo--current-node vundo--prev-mod-list)))
+    (setq vundo--last-saved-idx (vundo-m-idx cur-node))
+    (when vundo-highlight-saved-nodes
       (vundo--highlight-last-saved-node cur-node))))
 
 ;;; Debug
@@ -1298,8 +1298,7 @@ TYPE is the type of buffer you want."
              (mapcar #'vundo-m-idx (vundo--eqv-list-of node))
              (and (vundo-m-children node)
                   (mapcar #'vundo-m-idx (vundo-m-children node)))
-             (if-let* ((vundo-highlight-saved-nodes)
-                       (ts (vundo--mod-timestamp vundo--prev-mod-list
+             (if-let* ((ts (vundo--mod-timestamp vundo--prev-mod-list
                                                  (vundo-m-idx node)))
                        ((consp ts)))
                  (format " Saved: %s" (format-time-string "%F %r" ts))
