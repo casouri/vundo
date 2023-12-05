@@ -1,3 +1,15 @@
+<2023-12-08 Fri>: Version 2.5.0
+
+vundo-diff introduced, providing on-demand diff functionality.  Diff's
+are evaluated between the current node and either its parent node, or,
+if any, a marked node.  New key commands:
+
+  (m)ark   - mark a node for diff
+  (u)nmark - unmark any marked node
+  (d)iff   - diff between current and marked or parent node
+
+The (d)ebug command has been moved to (D)ebug.
+
 <2022-04-23 Sat>: Version 2.0.0
 
 Breaking change:

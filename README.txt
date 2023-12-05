@@ -72,9 +72,8 @@ Comparing to undo-tree:
 
 Vundo doesn’t need to be turned on all the time nor replace the undo
 commands like undo-tree does. Vundo displays the tree horizontally,
-whereas undo-tree displays a tree vertically. Vundo doesn’t have many
-advanced features that undo-tree does (like showing diff), and most
-probably will not add those features in the future.
+whereas undo-tree displays a tree vertically.  Diff is provided
+on-demand between any nodes, not just the node immediately prior.
 
 Tests:
 
@@ -88,6 +87,9 @@ to run those tests interactively, or use the following batch command:
 
 
 Changelog (full changelog in NEWS.txt):
+
+<2023-12-08 Fri>: Version 2.5.0: vundo-diff introduced, supporting
+on-demand diff to parent or any marked node.
 
 <2022-04-04 Mon>: Version 1.0.0
 
