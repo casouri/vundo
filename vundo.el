@@ -673,6 +673,9 @@ WINDOW is the window that was/is displaying the vundo buffer."
       (with-selected-window window
         (kill-buffer-and-window))))
 
+(declare-function vundo-diff "vundo-diff")
+(declare-function vundo-diff-mark "vundo-diff")
+(declare-function vundo-diff-unmark "vundo-diff")
 (defvar vundo-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "f") #'vundo-forward)
