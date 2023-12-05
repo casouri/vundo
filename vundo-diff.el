@@ -131,38 +131,42 @@ Displays in a separate diff buffer with name based on
 the original buffer name."
   (interactive)
   (let* ((orig vundo--orig-buffer)
-         (oname (buffer-name orig))
-         (current (vundo--current-node vundo--prev-mod-list))
-         (marked (or vundo-diff--marked-node (vundo-m-parent current)))
-         (swapped (> (vundo-m-idx marked) (vundo-m-idx current)))
-         dbuf)
+	 (oname (buffer-name orig))
+	 (current (vundo--current-node vundo--prev-mod-list))
+	 (marked (or vundo-diff--marked-node (vundo-m-parent current)))
+	 (swapped (> (vundo-m-idx marked) (vundo-m-idx current)))
+	 dbuf mrkbuf)
     (if (or (not current) (not marked) (eq current marked))
-        (message "vundo diff not available.")
-      (let ((mrkbuf (get-buffer-create
-                     (make-temp-name (concat oname "-vundo-diff-marked")))))
-        (vundo--check-for-command
-         (vundo--move-to-node current marked orig vundo--prev-mod-list)
-         (with-current-buffer mrkbuf
-           (insert-buffer-substring-no-properties orig))
-         (vundo--refresh-buffer orig (current-buffer) 'incremental)
-         (vundo--move-to-node marked current orig vundo--prev-mod-list)
-         (vundo--trim-undo-list orig current vundo--prev-mod-list)
-         (vundo--refresh-buffer orig (current-buffer) 'incremental))
-        (setq dbuf (diff-no-select (if swapped orig mrkbuf)
-                                   (if swapped mrkbuf orig)
-                                   nil nil (get-buffer-create
-                                            (concat "*vundo-diff-" oname "*"))))
-        (let* ((a (if swapped current marked))
-               (b (if swapped marked current)))
-          (if-let* ((proc (get-buffer-process dbuf)) ; diff called asynchronously
-                    (orig-sentinel (process-sentinel proc)))
-              (set-process-sentinel
-               proc (lambda (&rest args)
-                      (apply orig-sentinel args)
-                      (vundo-diff--cleanup-diff-buffer oname dbuf current a b)))
-            (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
-        (kill-buffer mrkbuf)
-        (display-buffer dbuf)))))
+	(message "vundo diff not available.")
+      (setq mrkbuf (get-buffer-create
+		    (make-temp-name (concat oname "-vundo-diff-marked"))))
+      (unwind-protect
+	  (progn
+            (vundo--check-for-command
+	     (vundo--move-to-node current marked orig vundo--prev-mod-list)
+	     (with-current-buffer mrkbuf
+	       (insert-buffer-substring-no-properties orig))
+	     (vundo--refresh-buffer orig (current-buffer) 'incremental)
+	     (vundo--move-to-node marked current orig vundo--prev-mod-list)
+	     (vundo--trim-undo-list orig current vundo--prev-mod-list)
+	     (vundo--refresh-buffer orig (current-buffer) 'incremental))
+	    (setq dbuf (diff-no-select (if swapped orig mrkbuf)
+				       (if swapped mrkbuf orig)
+				       nil nil
+                                       (get-buffer-create
+				        (concat "*vundo-diff-" oname "*"))))
+	    (let* ((a (if swapped current marked))
+	           (b (if swapped marked current)))
+	      (if-let* ((proc (get-buffer-process dbuf))
+		        (orig-sentinel (process-sentinel proc)))
+	          (set-process-sentinel ; diff called asynchronously
+                   proc
+                   (lambda (&rest args)
+		     (apply orig-sentinel args)
+		     (vundo-diff--cleanup-diff-buffer oname dbuf current a b)))
+	        (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
+	    (display-buffer dbuf))
+	(kill-buffer mrkbuf)))))
 
 
 (defconst vundo-diff-font-lock-keywords
