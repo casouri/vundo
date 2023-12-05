@@ -62,11 +62,11 @@ CURRENT node."
                        for idx = (vundo-m-idx x)
                        for ts = (vundo--any-timestamp vundo--prev-mod-list x)
                        for stat = (if (eq x current) "Current"
-				    (if vundo-diff--marked-node "Marked" "Parent"))
-		       collect
-		       (list (format "[%d]" idx)
+                                    (if vundo-diff--marked-node "Marked" "Parent"))
+                       collect
+                       (list (format "[%d]" idx)
                              (format "<%s> [mod %d] (%s)" orig-name idx stat)
-		             (when (consp ts) (format-time-string "%F %r" ts))))))
+                             (when (consp ts) (format-time-string "%F %r" ts))))))
     (with-current-buffer buf
       (vundo-diff-mode)
       (goto-char (point-min))
@@ -75,24 +75,24 @@ CURRENT node."
                                    '(diff-file-header diff-header))
                       "\n"))
       (let* ((change-files
-	      (cl-loop for (name fullname ts) in info
-		       for pat in '("---" "+++")
-		       if (re-search-forward
-			   (rx-to-string `(and bol ,pat (+ space)
-					       (group (group (+ (not ?\t)))
-						      (* any))
-					       eol))
+              (cl-loop for (name fullname ts) in info
+                       for pat in '("---" "+++")
+                       if (re-search-forward
+                           (rx-to-string `(and bol ,pat (+ space)
+                                               (group (group (+ (not ?\t)))
+                                                      (* any))
+                                               eol))
                            nil t)
-		       collect (cons (match-string-no-properties 2) name)
-		       and do (replace-match
+                       collect (cons (match-string-no-properties 2) name)
+                       and do (replace-match
                                (if ts (concat fullname "\t" ts) fullname)
-			       t t nil 1)))
-	     (lim (point)))
-	(when (eq (length change-files) 2)
+                               t t nil 1)))
+             (lim (point)))
+        (when (eq (length change-files) 2)
           (goto-char (point-min))
-	  (dolist (c change-files) ; change the file names in the diff
-	    (when (search-forward (car c) lim t)
-	      (replace-match (cdr c)))))))))
+          (dolist (c change-files) ; change the file names in the diff
+            (when (search-forward (car c) lim t)
+              (replace-match (cdr c)))))))))
 
 ;;;###autoload
 (defun vundo-diff-mark (&optional node)
@@ -141,7 +141,7 @@ the original buffer name."
       (let ((mrkbuf (get-buffer-create
                      (make-temp-name (concat oname "-vundo-diff-marked")))))
         (vundo--check-for-command
-	 (vundo--move-to-node current marked orig vundo--prev-mod-list)
+         (vundo--move-to-node current marked orig vundo--prev-mod-list)
          (with-current-buffer mrkbuf
            (insert-buffer-substring-no-properties orig))
          (vundo--refresh-buffer orig (current-buffer) 'incremental)
@@ -156,23 +156,23 @@ the original buffer name."
         (let* ((a (if swapped current marked))
                (b (if swapped marked current)))
           (if-let* ((proc (get-buffer-process dbuf)) ; diff called asynchronously
-		    (orig-sentinel (process-sentinel proc)))
-	      (set-process-sentinel
-	       proc (lambda (&rest args)
-		      (apply orig-sentinel args)
-		      (vundo-diff--cleanup-diff-buffer oname dbuf current a b)))
-	    (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
+                    (orig-sentinel (process-sentinel proc)))
+              (set-process-sentinel
+               proc (lambda (&rest args)
+                      (apply orig-sentinel args)
+                      (vundo-diff--cleanup-diff-buffer oname dbuf current a b)))
+            (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
         (kill-buffer mrkbuf)
         (display-buffer dbuf)))))
 
 
 (defconst vundo-diff-font-lock-keywords
   `((,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
-	  (+ ?\s) ?\((group (or "Parent" "Current")) ?\))
+          (+ ?\s) ?\((group (or "Parent" "Current")) ?\))
      (1 'diff-index t)
      (2 'vundo-highlight t))
     (,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
-	  (+ ?\s) ?\((group "Marked") ?\))
+          (+ ?\s) ?\((group "Marked") ?\))
      (1 'diff-index t)
      (2 'vundo-diff-highlight t)))
   "Additional font-lock keyword to fontify Parent/Current/Marked.")
@@ -181,7 +181,7 @@ the original buffer name."
   :syntax-table nil
   :abbrev-table nil
   (setcar font-lock-defaults
-	  (append diff-font-lock-keywords vundo-diff-font-lock-keywords)))
+          (append diff-font-lock-keywords vundo-diff-font-lock-keywords)))
 
 (provide 'vundo-diff)
 
