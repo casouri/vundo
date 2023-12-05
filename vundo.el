@@ -584,11 +584,11 @@ corresponding to the index of the last saved node."
              (only-child-p (and parent (eq (length siblings) 1)))
              (node-last-child-p (and parent (eq node (car (last siblings)))))
              (node-idx (vundo-m-idx node))
-             (saved-p (and vundo-highlight-saved-nodes
-                           (vundo--mod-timestamp mod-list node-idx)))
+             (mod-ts (vundo--mod-timestamp mod-list node-idx))
+             (saved-p (and vundo-highlight-saved-nodes mod-ts))
              (node-face (if saved-p 'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
-        (when (and saved-p (> node-idx last-saved-idx))
+        (when (and mod-ts (> node-idx last-saved-idx))
           (setq last-saved-idx node-idx))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
