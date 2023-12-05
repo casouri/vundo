@@ -50,24 +50,21 @@
 (defvar-local vundo-diff--highlight-overlay nil
   "Overlay used to highlight the selected node.")
 
-(defun vundo-diff--cleanup-diff-buffer (orig buf current from to)
+(defun vundo-diff--cleanup-diff-buffer (orig-name buf current from to)
   "Update diff headers in BUF.
 Headers are updated to indicate the diff in the contents of
-buffer ORIG, between nodes FROM and TO, and given the CURRENT
-node."
-  (let* ((info (cl-loop for x in (list from to)
-		        with oname = (buffer-name orig)
-                        for idx = (vundo-m-idx x)
-                        for ts = (vundo--any-timestamp vundo--prev-mod-list x)
-                        for stat = (if (eq x current) "Current"
-				     (if vundo-diff--marked-node
-				         "Marked" "Parent"))
-		        collect
-		        (list (format "<%s>[%s]" oname idx)
-                              (format "<%s>[%d:%s]" oname idx stat)
-		              (when (consp ts) (format-time-string "%F %r" ts)))))
-	 (mxlen (apply #'max (mapcar (lambda (x) (length (cadr x))) info))))
-    (dolist (x info) (setf (nth 1 x) (string-pad (nth 1 x) mxlen)))
+buffer named ORIG-NAME, between nodes FROM and TO, and given the
+CURRENT node."
+  (let ((inhibit-read-only t)
+        (info (cl-loop for x in (list from to)
+                       for idx = (vundo-m-idx x)
+                       for ts = (vundo--any-timestamp vundo--prev-mod-list x)
+                       for stat = (if (eq x current) "Current"
+				    (if vundo-diff--marked-node "Marked" "Parent"))
+		       collect
+		       (list (format "[%d]" idx)
+                             (format "<%s> [mod %d] (%s)" orig-name idx stat)
+		             (when (consp ts) (format-time-string "%F %r" ts))))))
     (with-current-buffer buf
       (goto-char (point-min))
       (let* ((inhibit-read-only t)
@@ -157,8 +154,8 @@ the original buffer name."
 		    (orig-sentinel (process-sentinel proc)))
 	      (set-process-sentinel
 	       proc (lambda (&rest args)
-		      (apply orig-sentinel args) 
-		      (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
+		      (apply orig-sentinel args)
+		      (vundo-diff--cleanup-diff-buffer oname dbuf current a b)))
 	    (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
         (kill-buffer mrkbuf)
         (display-buffer dbuf)))))
