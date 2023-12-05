@@ -86,8 +86,7 @@ CURRENT node."
                                (if ts (concat fullname "\t" ts) fullname)
 			       t t nil 1)))
 	     (lim (point)))
-	(if (/= (length change-files) 2)
-	    (message "NO LUCK %S\t%S" change-files info)
+	(when (eq (length change-files) 2)
           (goto-char (point-min))
 	  (dolist (c change-files) ; change the file names in the diff
 	    (when (search-forward (car c) lim t)
