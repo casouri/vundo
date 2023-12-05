@@ -50,6 +50,49 @@
 (defvar-local vundo-diff--highlight-overlay nil
   "Overlay used to highlight the selected node.")
 
+(defun vundo-diff--cleanup-diff-buffer (orig buf current from to)
+  "Update diff headers in BUF.
+Headers are updated to indicate the diff in the contents of
+buffer ORIG, between nodes FROM and TO, and given the CURRENT
+node."
+  (let* ((info (cl-loop for x in (list from to)
+		        with oname = (buffer-name orig)
+                        for ts = (vundo--mod-timestamp
+			          vundo--prev-mod-list (vundo-m-idx x))
+		        for idx = (vundo-m-idx x)
+                        for stat = (if (eq x current) "Current"
+				     (if vundo-diff--marked-node
+				         "Marked" "Parent"))
+		        collect
+		        (list (format "<%s>[%s]" oname idx)
+                              (format "<%s>[%d:%s]" oname idx stat)
+		              (when (consp ts) (format-time-string "%F %r" ts)))))
+	 (mxlen (apply #'max (mapcar (lambda (x) (length (cadr x))) info))))
+    (dolist (x info) (setf (nth 1 x) (string-pad (nth 1 x) mxlen)))
+    (with-current-buffer buf
+      (goto-char (point-min))
+      (let* ((inhibit-read-only t)
+	     (change-files
+	      (cl-loop for (name fullname ts) in info
+		       for pat in '("---" "+++")
+		       if (re-search-forward
+			   (rx-to-string `(and bol ,pat (+ space)
+					       (group (group (+ (not ?\t)))
+						      (* any))
+					       eol))
+                           nil t)
+		       collect (cons (match-string-no-properties 2) name)
+		       and do (replace-match
+                               (if ts (concat fullname "\t" ts) fullname)
+			       t t nil 1)))
+	     (lim (point)))
+	(if (/= (length change-files) 2)
+	    (message "NO LUCK %S\t%S" change-files info)
+          (goto-char (point-min))
+	  (dolist (c change-files) ; change the file names in the diff
+	    (when (search-forward (car c) lim t)
+	      (replace-match (cdr c)))))))))
+
 ;;;###autoload
 (defun vundo-diff-mark (&optional node)
   "Mark NODE for vundo diff.
@@ -108,42 +151,16 @@ the original buffer name."
                                    (if swapped mrkbuf orig)
                                    nil nil (get-buffer-create
                                             (concat "*vundo-diff-" oname "*"))))
-        (let* ((inhibit-read-only t)
-               (a (if swapped current marked))
-               (b (if swapped marked current))
-               (diff-msg
-                (concat
-                 (propertize " vundo-diff: " 'font-lock-face 'diff-header)
-                 (propertize oname 'font-lock-face '(diff-file-header diff-header))
-                 "\n"
-                 (apply #'format "  %4s: %7s[%s]%s\n  %4s: %7s[%s]%s\n\n"
-                        (cl-loop
-                         for x in (list a b) for h in '("From" "To")
-                         collect
-                         (propertize h 'font-lock-face 'diff-header)
-                         collect
-                         (propertize (if (eq x current) "Current"
-                                       (if vundo-diff--marked-node
-                                           "Marked" "Parent"))
-                                     'font-lock-face
-                                     (if (or (eq x current)
-                                             (null vundo-diff--marked-node))
-                                         'vundo-highlight 'vundo-diff-highlight))
-                         collect
-                         (propertize (number-to-string (vundo-m-idx x))
-                                     'font-lock-face
-                                     '(diff-file-header diff-header))
-                         collect
-                         (if-let* ((ts (vundo--mod-timestamp
-                                        vundo--prev-mod-list (vundo-m-idx x)))
-                                   ((consp ts)))
-                             (propertize
-                              (format " Saved: %s" (format-time-string "%F %r" ts))
-                              'font-lock-face 'diff-header)
-                           ""))))))
-          (with-current-buffer dbuf
-            (goto-char (point-min))
-            (insert diff-msg)))
+        
+        (let* ((a (if swapped current marked))
+               (b (if swapped marked current)))
+          (if-let* ((proc (get-buffer-process dbuf)) ; diff called asynchronously
+		    (orig-sentinel (process-sentinel proc)))
+	      (set-process-sentinel
+	       proc (lambda (&rest args)
+		      (apply orig-sentinel args) 
+		      (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
+	    (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
         (kill-buffer mrkbuf)
         (display-buffer dbuf)))))
 
