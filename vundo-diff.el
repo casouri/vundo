@@ -38,6 +38,8 @@
 ;;; Code:
 (require 'vundo)
 (require 'diff)
+(require 'diff-mode)
+(eval-when-compile (require 'cl-lib))
 
 (defface vundo-diff-highlight
   '((((background light)) .
@@ -162,6 +164,24 @@ the original buffer name."
 	    (vundo-diff--cleanup-diff-buffer orig dbuf current a b)))
         (kill-buffer mrkbuf)
         (display-buffer dbuf)))))
+
+
+(defconst vundo-diff-font-lock-keywords
+  `((,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
+	  (+ ?\s) ?\((group (or "Parent" "Current")) ?\))
+     (1 'diff-index t)
+     (2 'vundo-highlight t))
+    (,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
+	  (+ ?\s) ?\((group "Marked") ?\))
+     (1 'diff-index t)
+     (2 'vundo-diff-highlight t)))
+  "Additional font-lock keyword to fontify Parent/Current/Marked.")
+
+(define-derived-mode vundo-diff-mode diff-mode "Vundo Diff"
+  :syntax-table nil
+  :abbrev-table nil
+  (setcar font-lock-defaults
+	  (append diff-font-lock-keywords vundo-diff-font-lock-keywords)))
 
 (provide 'vundo-diff)
 
