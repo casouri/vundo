@@ -66,13 +66,13 @@ CURRENT node."
                              (format "<%s> [mod %d] (%s)" orig-name idx stat)
 		             (when (consp ts) (format-time-string "%F %r" ts))))))
     (with-current-buffer buf
+      (vundo-diff-mode)
       (goto-char (point-min))
-      (let* ((inhibit-read-only t)
-	     (change-files
       (insert (concat (propertize "vundo-diff: " 'font-lock-face 'diff-header)
                       (propertize  orig-name 'font-lock-face
                                    '(diff-file-header diff-header))
                       "\n"))
+      (let* ((change-files
 	      (cl-loop for (name fullname ts) in info
 		       for pat in '("---" "+++")
 		       if (re-search-forward
