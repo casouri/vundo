@@ -96,13 +96,14 @@ the original buffer name."
         (message "vundo diff not available.")
       (let ((mrkbuf (get-buffer-create
                      (make-temp-name (concat oname "-vundo-diff-marked")))))
-        (vundo--move-to-node current marked orig vundo--prev-mod-list)
-        (with-current-buffer mrkbuf
-          (insert-buffer-substring-no-properties orig))
-        (vundo--refresh-buffer orig (current-buffer) 'incremental)
-        (vundo--move-to-node marked current orig vundo--prev-mod-list)
-        (vundo--trim-undo-list orig current vundo--prev-mod-list)
-        (vundo--refresh-buffer orig (current-buffer) 'incremental)
+        (vundo--check-for-command
+	 (vundo--move-to-node current marked orig vundo--prev-mod-list)
+         (with-current-buffer mrkbuf
+           (insert-buffer-substring-no-properties orig))
+         (vundo--refresh-buffer orig (current-buffer) 'incremental)
+         (vundo--move-to-node marked current orig vundo--prev-mod-list)
+         (vundo--trim-undo-list orig current vundo--prev-mod-list)
+         (vundo--refresh-buffer orig (current-buffer) 'incremental))
         (setq dbuf (diff-no-select (if swapped orig mrkbuf)
                                    (if swapped mrkbuf orig)
                                    nil nil (get-buffer-create
