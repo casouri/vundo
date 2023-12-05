@@ -32,7 +32,7 @@
 ;;    m  mark a node for diff
 ;;    u  unmark the marked node
 ;;    d  diff between the marked (or parent) and current nodes
-;;    
+;;
 ;; All of the normal navigation command of vundo work as normal.
 
 ;;; Code:
@@ -152,7 +152,6 @@ the original buffer name."
                                    (if swapped mrkbuf orig)
                                    nil nil (get-buffer-create
                                             (concat "*vundo-diff-" oname "*"))))
-        
         (let* ((a (if swapped current marked))
                (b (if swapped marked current)))
           (if-let* ((proc (get-buffer-process dbuf)) ; diff called asynchronously
