@@ -43,9 +43,9 @@
 
 (defface vundo-diff-highlight
   '((((background light)) .
-     (:inherit vundo-node :foreground "DodgerBlue4"))
+     (:inherit vundo-highlight :foreground "DodgerBlue4"))
     (((background dark)) .
-     (:inherit vundo-node  :foreground "DodgerBlue1")))
+     (:inherit vundo-highlight  :foreground "DodgerBlue1")))
   "Face for nodes marked for diff in the undo tree.")
 
 (defvar-local vundo-diff--marked-node nil)
