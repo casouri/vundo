@@ -69,6 +69,10 @@ CURRENT node."
       (goto-char (point-min))
       (let* ((inhibit-read-only t)
 	     (change-files
+      (insert (concat (propertize "vundo-diff: " 'font-lock-face 'diff-header)
+                      (propertize  orig-name 'font-lock-face
+                                   '(diff-file-header diff-header))
+                      "\n"))
 	      (cl-loop for (name fullname ts) in info
 		       for pat in '("---" "+++")
 		       if (re-search-forward
