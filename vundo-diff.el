@@ -57,9 +57,8 @@ buffer ORIG, between nodes FROM and TO, and given the CURRENT
 node."
   (let* ((info (cl-loop for x in (list from to)
 		        with oname = (buffer-name orig)
-                        for ts = (vundo--mod-timestamp
-			          vundo--prev-mod-list (vundo-m-idx x))
-		        for idx = (vundo-m-idx x)
+                        for idx = (vundo-m-idx x)
+                        for ts = (vundo--any-timestamp vundo--prev-mod-list x)
                         for stat = (if (eq x current) "Current"
 				     (if vundo-diff--marked-node
 				         "Marked" "Parent"))
