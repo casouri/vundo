@@ -60,7 +60,7 @@ CURRENT node."
   (let ((inhibit-read-only t)
         (info (cl-loop for x in (list from to)
                        for idx = (vundo-m-idx x)
-                       for ts = (vundo--any-timestamp vundo--prev-mod-list x)
+                       for ts = (vundo--node-timestamp vundo--prev-mod-list x)
                        for stat = (if (eq x current) "Current"
                                     (if vundo-diff--marked-node "Marked" "Parent"))
                        collect

@@ -536,7 +536,7 @@ This is set by ‘vundo--draw-tree’ and ‘vundo-save’, and used by
                      (aref mod-list next-mod-idx))))
     (and next-mod (vundo-m-timestamp next-mod))))
 
-(defun vundo--any-timestamp (mod-list node)
+(defun vundo--node-timestamp (mod-list node)
   "Return a timestamp from MOD-LIST for NODE, if any.
 In addition to undo-based timestamps, this includes the modtime of the
 current buffer (if unmodified)."
@@ -1321,7 +1321,7 @@ TYPE is the type of buffer you want."
              (mapcar #'vundo-m-idx (vundo--eqv-list-of node))
              (and (vundo-m-children node)
                   (mapcar #'vundo-m-idx (vundo-m-children node)))
-             (if-let* ((ts (vundo--any-timestamp vundo--prev-mod-list node))
+             (if-let* ((ts (vundo--node-timestamp vundo--prev-mod-list node))
                        ((consp ts)))
                  (format " Saved: %s" (format-time-string "%F %r" ts))
                ""))))
