@@ -553,14 +553,18 @@ Translate according to `vundo-glyph-alist'."
                   vundo-glyph-alist)))
               text 'string))
 
-(defun vundo--mod-timestamp (mod-list idx)
-  "Return a timestamp if the mod in MOD-LIST at IDX has a timestramp."
-  ;; If the next mod’s timestamp is non-nil, this mod/node
-  ;; represents a saved state.
-  (let* ((next-mod-idx (1+ idx))
-         (next-mod (when (< next-mod-idx (length mod-list))
-                     (aref mod-list next-mod-idx))))
-    (and next-mod (vundo-m-timestamp next-mod))))
+(defun vundo--mod-timestamp (mod-list node)
+  "Return a timestamp if the NODE in MOD-LIST has a changed timestamp.
+This also check all equivalent nodes to NODE."
+  ;; If the next mod in modlist has a timestamp for any equivalent
+  ;; node, this mod/node represents a saved state.
+  (seq-some
+   (lambda (n)
+     (let* ((next-mod-idx (1+ (vundo-m-idx n)))
+	    (next-mod (when (< next-mod-idx (length mod-list))
+			(aref mod-list next-mod-idx))))
+       (and next-mod (vundo-m-timestamp next-mod))))
+   (vundo--eqv-list-of node)))
 
 (defvar vundo--last-saved-idx)
 
@@ -585,7 +589,7 @@ corresponding to the index of the last saved node."
              (node-last-child-p (and parent (eq node (car (last siblings)))))
              (node-idx (vundo-m-idx node))
              (saved-p (and vundo-highlight-saved-nodes
-                           (vundo--mod-timestamp mod-list node-idx)))
+                           (vundo--mod-timestamp mod-list node)))
              (node-face (if saved-p 'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
         (when (and saved-p (> node-idx last-saved-idx))
@@ -1296,8 +1300,7 @@ TYPE is the type of buffer you want."
              (and (vundo-m-children node)
                   (mapcar #'vundo-m-idx (vundo-m-children node)))
              (if-let* ((vundo-highlight-saved-nodes)
-                       (ts (vundo--mod-timestamp vundo--prev-mod-list
-                                                 (vundo-m-idx node)))
+                       (ts (vundo--mod-timestamp vundo--prev-mod-list node))
                        ((consp ts)))
                  (format " Saved: %s" (format-time-string "%F %r" ts))
                ""))))
