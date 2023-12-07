@@ -593,6 +593,14 @@ Translate according to `vundo-glyph-alist'."
 
 (defvar vundo--last-saved-idx)
 
+(defun vundo--find-last-saved (mod-list node)
+  "Return the last saved node on MOD-LIST prior to NODE."
+  (let ((idx (1- (vundo-m-idx node))))
+    (while (and (>= idx 0)
+		(null (vundo--node-timestamp (aref mod-list idx))))
+      (setq idx (1- idx)))
+    (and idx (aref mod-list idx))))
+
 (defun vundo--draw-tree (mod-list orig-buffer-modified)
   "Draw the tree in MOD-LIST in current buffer.
 ORIG-BUFFER-MODIFIED is t if the original buffer is not saved to
@@ -1276,20 +1284,20 @@ If ARG < 0, move forward."
       'incremental))))
 
 (defun vundo-goto-last-saved ()
-  "Goto the last saved node, if any."
+  "Goto the last saved node from the current position, if any."
   (interactive)
-  (when (and vundo--last-saved-idx (>= vundo--last-saved-idx 0))
+  (when-let* ((this (vundo--current-node vundo--prev-mod-list) )
+              (dest (vundo--find-last-saved vundo--prev-mod-list
+					    (vundo-m-idx this)))
+	      ((not (eq this dest))))
     (vundo--check-for-command
-     (when-let* ((this (vundo--current-node vundo--prev-mod-list))
-                 (dest (aref vundo--prev-mod-list vundo--last-saved-idx)))
-       (unless (eq this dest)
-         (vundo--move-to-node
-          this dest vundo--orig-buffer vundo--prev-mod-list)
-         (vundo--trim-undo-list
-          vundo--orig-buffer dest vundo--prev-mod-list)
-         (vundo--refresh-buffer
-          vundo--orig-buffer (current-buffer)
-          'incremental))))))
+     (vundo--move-to-node
+      this dest vundo--orig-buffer vundo--prev-mod-list)
+     (vundo--trim-undo-list
+      vundo--orig-buffer dest vundo--prev-mod-list)
+     (vundo--refresh-buffer
+      vundo--orig-buffer (current-buffer)
+      'incremental))))
 
 (defun vundo-save (arg)
   "Run `save-buffer' with the current buffer Vundo is operating on.
