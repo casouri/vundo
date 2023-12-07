@@ -591,6 +591,19 @@ Translate according to `vundo-glyph-alist'."
                   vundo-glyph-alist)))
               text 'string))
 
+(defun vundo--mod-timestamp (mod-list node)
+  "Return a timestamp if the NODE in MOD-LIST has a changed timestamp.
+This also check all equivalent nodes to NODE."
+  ;; If the next mod in modlist has a timestamp for any equivalent
+  ;; node, this mod/node represents a saved state.
+  (seq-some
+   (lambda (n)
+     (let* ((next-mod-idx (1+ (vundo-m-idx n)))
+	    (next-mod (when (< next-mod-idx (length mod-list))
+			(aref mod-list next-mod-idx))))
+       (and next-mod (vundo-m-timestamp next-mod))))
+   (vundo--eqv-list-of node)))
+
 (defvar vundo--last-saved-idx)
 
 (defun vundo--find-last-saved (mod-list node)
