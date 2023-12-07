@@ -522,13 +522,23 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
 ;; an undo changed.  During tree draw, we collect the last of these, and
 ;; indicated nodes which had been saved specially.
 
+(defvar-local vundo--orig-buffer nil
+  "Vundo buffer displays the undo tree for this buffer.")
+
 (defvar-local vundo--last-saved-idx nil
   "The last node index with a timestamp seen.
 This is set by ‘vundo--draw-tree’ and ‘vundo-save’, and used by
 ‘vundo-goto-last-saved’ and ‘vundo--highlight-last-saved-node’.")
 
-(defvar-local vundo--orig-buffer nil
-  "Vundo buffer displays the undo tree for this buffer.")
+(defun vundo--find-last-saved (mod-list node)
+  "Return the last saved node on MOD-LIST prior to NODE.
+Returns nil if no prior saved node exists."
+  (let ((idx (1- (vundo-m-idx node))))
+    (while (and (>= idx 0)
+                (null (vundo--node-timestamp
+                       mod-list (aref mod-list idx))))
+      (setq idx (1- idx)))
+    (and idx (aref mod-list idx))))
 
 (defun vundo--mod-timestamp (mod-list idx)
   "Return a timestamp if the mod in MOD-LIST at IDX has a timestamp."
@@ -590,29 +600,6 @@ Translate according to `vundo-glyph-alist'."
                     (?└ 'last-branch))
                   vundo-glyph-alist)))
               text 'string))
-
-(defun vundo--mod-timestamp (mod-list node)
-  "Return a timestamp if the NODE in MOD-LIST has a changed timestamp.
-This also check all equivalent nodes to NODE."
-  ;; If the next mod in modlist has a timestamp for any equivalent
-  ;; node, this mod/node represents a saved state.
-  (seq-some
-   (lambda (n)
-     (let* ((next-mod-idx (1+ (vundo-m-idx n)))
-	    (next-mod (when (< next-mod-idx (length mod-list))
-			(aref mod-list next-mod-idx))))
-       (and next-mod (vundo-m-timestamp next-mod))))
-   (vundo--eqv-list-of node)))
-
-(defvar vundo--last-saved-idx)
-
-(defun vundo--find-last-saved (mod-list node)
-  "Return the last saved node on MOD-LIST prior to NODE."
-  (let ((idx (1- (vundo-m-idx node))))
-    (while (and (>= idx 0)
-		(null (vundo--node-timestamp (aref mod-list idx))))
-      (setq idx (1- idx)))
-    (and idx (aref mod-list idx))))
 
 (defun vundo--draw-tree (mod-list orig-buffer-modified)
   "Draw the tree in MOD-LIST in current buffer.
