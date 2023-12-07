@@ -552,15 +552,16 @@ Returns nil if no prior saved node exists."
 (defun vundo--node-timestamp (mod-list node)
   "Return a timestamp from MOD-LIST for NODE, if any.
 In addition to undo-based timestamps, this includes the modtime of the
-current buffer (if unmodified)."
-  (let* ((idx (vundo-m-idx node))
-	 (current (vundo--current-node mod-list)))
+current buffer (if it is unmodified)."
+  (let* ((idx (vundo-m-idx node)))
     (or (vundo--mod-timestamp mod-list idx)
-	(and (eq node current) (eq idx vundo--last-saved-idx)
+        (and (eq idx vundo--last-saved-idx)
+             (eq node (vundo--current-node mod-list))
              (with-current-buffer vundo--orig-buffer
-	       (and (buffer-file-name)
+               (and (buffer-file-name)
                     (not (buffer-modified-p))
                     (visited-file-modtime)))))))
+
 ;;; Draw tree
 
 (defun vundo--put-node-at-point (node)
