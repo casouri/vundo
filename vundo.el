@@ -1285,20 +1285,17 @@ If ARG < 0, move forward."
       'incremental))))
 
 (defun vundo-goto-last-saved ()
-  "Goto the last saved node from the current position, if any."
+  "Goto the last saved node from the current node, if any."
   (interactive)
-  (when-let* ((this (vundo--current-node vundo--prev-mod-list) )
-              (dest (vundo--find-last-saved vundo--prev-mod-list
-					    (vundo-m-idx this)))
-	      ((not (eq this dest))))
+  (when-let* ((cur (vundo--current-node vundo--prev-mod-list) )
+              (dest (vundo--find-last-saved vundo--prev-mod-list cur)))
     (vundo--check-for-command
-     (vundo--move-to-node
-      this dest vundo--orig-buffer vundo--prev-mod-list)
-     (vundo--trim-undo-list
-      vundo--orig-buffer dest vundo--prev-mod-list)
-     (vundo--refresh-buffer
-      vundo--orig-buffer (current-buffer)
-      'incremental))))
+     (vundo--move-to-node cur dest vundo--orig-buffer vundo--prev-mod-list)
+     (vundo--trim-undo-list vundo--orig-buffer dest vundo--prev-mod-list)
+     (vundo--refresh-buffer vundo--orig-buffer (current-buffer) 'incremental))
+    (message
+     "Node saved %s" (format-time-string
+                      "%F %r" (vundo--node-timestamp vundo--prev-mod-list dest)))))
 
 (defun vundo-save (arg)
   "Run `save-buffer' with the current buffer Vundo is operating on.
