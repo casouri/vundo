@@ -93,9 +93,7 @@
 ;;
 ;; Vundo doesn’t need to be turned on all the time nor replace the undo
 ;; commands like undo-tree does. Vundo displays the tree horizontally,
-;; whereas undo-tree displays a tree vertically. Vundo doesn’t have many
-;; advanced features that undo-tree does (like showing diff), and most
-;; probably will not add those features in the future.
+;; whereas undo-tree displays a tree vertically.
 
 ;;; Developer:
 ;;
