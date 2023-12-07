@@ -538,23 +538,27 @@ Returns nil if no prior saved node exists."
                 (null (vundo--node-timestamp
                        mod-list (aref mod-list idx))))
       (setq idx (1- idx)))
-    (and idx (aref mod-list idx))))
+    (and (>= idx 0) (aref mod-list idx))))
 
-(defun vundo--mod-timestamp (mod-list idx)
-  "Return a timestamp if the mod in MOD-LIST at IDX has a timestamp."
-  ;; If the next mod’s timestamp is non-nil, this mod/node
-  ;; represents a saved state.
-  (let* ((next-mod-idx (1+ idx))
-         (next-mod (when (< next-mod-idx (length mod-list))
-                     (aref mod-list next-mod-idx))))
-    (and next-mod (vundo-m-timestamp next-mod))))
+(defun vundo--mod-timestamp (mod-list node)
+  "Return the timestamp of mod after NODE in MOD-LIST, if any.
+Also checks all equivalent nodes to NODE."
+  ;; If the next mod in modlist has a timestamp for any equivalent
+  ;; node, this mod/node represents a saved state.
+  (seq-some
+   (lambda (n)
+     (let* ((next-mod-idx (1+ (vundo-m-idx n)))
+	    (next-mod (when (< next-mod-idx (length mod-list))
+			(aref mod-list next-mod-idx))))
+       (and next-mod (vundo-m-timestamp next-mod))))
+   (vundo--eqv-list-of node)))
 
 (defun vundo--node-timestamp (mod-list node)
   "Return a timestamp from MOD-LIST for NODE, if any.
 In addition to undo-based timestamps, this includes the modtime of the
 current buffer (if it is unmodified)."
   (let* ((idx (vundo-m-idx node)))
-    (or (vundo--mod-timestamp mod-list idx)
+    (or (vundo--mod-timestamp mod-list node)
         (and (eq idx vundo--last-saved-idx)
              (eq node (vundo--current-node mod-list))
              (with-current-buffer vundo--orig-buffer
@@ -622,7 +626,7 @@ corresponding to the index of the last saved node."
              (only-child-p (and parent (eq (length siblings) 1)))
              (node-last-child-p (and parent (eq node (car (last siblings)))))
              (node-idx (vundo-m-idx node))
-             (mod-ts (vundo--mod-timestamp mod-list node-idx))
+             (mod-ts (vundo--mod-timestamp mod-list node))
              (saved-p (and vundo-highlight-saved-nodes mod-ts))
              (node-face (if saved-p 'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
