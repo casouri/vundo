@@ -547,9 +547,9 @@ Updates `vundo--timestamps'."
              (when (and old-ts (> (float-time (time-subtract old-ts ts)) 0))
                (setq ts old-ts)) ; equivalent node modified again? take the newer time
              (setf (alist-get master vundo--timestamps nil nil #'eq) ts)))
-  (setq vundo--timestamps ; latest first
-        (sort (lambda (a b) (> (float-time (time-subtract (cdr a) (cdr b))) 0))
-              vundo--timestamps)))
+  (setq vundo--timestamps ; sort latest first
+        (sort vundo--timestamps
+              (lambda (a b) (> (float-time (time-subtract (cdr a) (cdr b))) 0)))))
 
 (defun vundo--find-last-saved (node &optional arg)
   "Return the last saved node prior to NODE.
