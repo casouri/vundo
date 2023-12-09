@@ -852,21 +852,24 @@ This function modifies `vundo--prev-mod-list',
           ;; Build tree.
           (vundo--build-tree mod-list mod-hash
                              (length vundo--prev-mod-list))))
-      ;; 3. Render buffer. We don't need to redraw the tree if there
-      ;; is no change to the nodes.
-      (unless (eq (vundo--latest-buffer-state mod-list) latest-state)
-        (vundo--draw-tree mod-list (with-current-buffer orig-buffer
-                                     (buffer-modified-p))))
 
-      ;; Highlight current node.
-      (vundo--highlight-node (vundo--current-node mod-list))
-      (goto-char (vundo-m-point (vundo--current-node mod-list)))
+      ;; Record timestamps
+      (vundo--record-timestamps mod-list)
 
       ;; Update cache.
       (setq vundo--prev-mod-list mod-list
             vundo--prev-mod-hash mod-hash
             vundo--prev-undo-list undo-list
-            vundo--orig-buffer orig-buffer))))
+            vundo--orig-buffer orig-buffer)
+
+      ;; 3. Render buffer. We don't need to redraw the tree if there
+      ;; is no change to the nodes.
+      (unless (eq (vundo--latest-buffer-state mod-list) latest-state)
+        (vundo--draw-tree mod-list))
+
+      ;; Highlight current node.
+      (vundo--highlight-node (vundo--current-node mod-list))
+      (goto-char (vundo-m-point (vundo--current-node mod-list))))))
 
 (defun vundo--current-node (mod-list)
   "Return the currently highlighted node in MOD-LIST."
