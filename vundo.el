@@ -525,46 +525,83 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
 (defvar-local vundo--orig-buffer nil
   "Vundo buffer displays the undo tree for this buffer.")
 
+(defvar-local vundo--timestamps nil
+  "Mapping between the oldest equivalent node and modification time.
+Sorted by time with latest saved mods first.")
+
 (defvar-local vundo--last-saved-idx nil
   "The last node index with a timestamp seen.
 This is set by ‘vundo--draw-tree’ and ‘vundo-save’, and used by
 ‘vundo-goto-last-saved’ and ‘vundo--highlight-last-saved-node’.")
 
-(defun vundo--find-last-saved (mod-list node)
-  "Return the last saved node on MOD-LIST prior to NODE.
-Returns nil if no prior saved node exists."
-  (let ((idx (1- (vundo-m-idx node))))
-    (while (and (>= idx 0)
-                (null (vundo--node-timestamp
-                       mod-list (aref mod-list idx))))
-      (setq idx (1- idx)))
-    (and (>= idx 0) (aref mod-list idx))))
+(defun vundo--record-timestamps (mod-list)
+  "Record all the timestamps in MOD-LIST.
+Updates `vundo--timestamps'."
+  (setq vundo--timestamps nil)
+  (cl-loop for idx from 1 below (length mod-list)
+           for ts = (vundo-m-timestamp (aref mod-list idx))
+           if ts do
+           (let* ((mod-node (aref mod-list (1- idx)))
+                  (master (vundo--master-eqv-mod-of mod-node))
+                  (old-ts (cdr (assq master vundo--timestamps))))
+             (when (and old-ts (> (float-time (time-subtract old-ts ts)) 0))
+               (setq ts old-ts)) ; equivalent node modified again? take the newer time
+             (setf (alist-get master vundo--timestamps nil nil #'eq) ts)))
+  (setq vundo--timestamps ; latest first
+        (sort (lambda (a b) (> (float-time (time-subtract (cdr a) (cdr b))) 0))
+              vundo--timestamps)))
 
-(defun vundo--mod-timestamp (mod-list node)
-  "Return the timestamp of mod after NODE in MOD-LIST, if any.
-Also checks all equivalent nodes to NODE."
-  ;; If the next mod in modlist has a timestamp for any equivalent
-  ;; node, this mod/node represents a saved state.
-  (seq-some
-   (lambda (n)
-     (let* ((next-mod-idx (1+ (vundo-m-idx n)))
-	    (next-mod (when (< next-mod-idx (length mod-list))
-			(aref mod-list next-mod-idx))))
-       (and next-mod (vundo-m-timestamp next-mod))))
-   (vundo--eqv-list-of node)))
+(defun vundo--find-last-saved (node &optional arg)
+  "Return the last saved node prior to NODE.
+ARG (default 1) specifies the number of saved nodes to move
+backwards in history.  ARG<0 indicates moving that many saved
+nodes forward in history.  Returns nil if no such saved node
+exists."
+  (let* ((arg (or arg 1))
+         (past (>= arg 0))
+         (cnt (abs arg))
+         (master (vundo--master-eqv-mod-of node))
+         (midx (vundo-m-idx master))
+         node)
+    (if (assq master vundo--timestamps)
+        (setq node master)
+      ;; no TS here, find closest idx on saved list in direction ARG
+      (cl-loop with val = (if past -1 most-positive-fixnum)
+	       with op = (if past #'< #'>)
+	       for (n . _) in vundo--timestamps
+               for i upfrom 0
+               if (funcall op val i midx) do (setq val i node n))
+      (when node (setq cnt (1- cnt))))  ; used up one getting started
+    (if (and node (> cnt 0))            ; found one, but more to go
+        (let ((vt (if past vundo--timestamps (reverse vundo--timestamps))))
+          (while (and vt (not (eq (caar vt) node))) (setq vt (cdr vt)))
+          (car-safe (nthcdr cnt vt)))
+      node)))
+
+;; (defun vundo--mod-timestamp (mod-list node)
+;;   "Return the timestamp of mod after NODE in MOD-LIST, if any.
+;; Also checks all equivalent nodes to NODE."
+;;   ;; If the next mod in modlist has a timestamp for any equivalent
+;;   ;; node, this mod/node represents a saved state.
+;;   (seq-some
+;;    (lambda (n)
+;;      (let* ((next-mod-idx (1+ (vundo-m-idx n)))
+;;             (next-mod (when (< next-mod-idx (length mod-list))
+;;                         (aref mod-list next-mod-idx))))
+;;        (and next-mod (vundo-m-timestamp next-mod))))
+;;    (vundo--eqv-list-of node)))
 
 (defun vundo--node-timestamp (mod-list node)
   "Return a timestamp from MOD-LIST for NODE, if any.
 In addition to undo-based timestamps, this includes the modtime of the
 current buffer (if it is unmodified)."
-  (let* ((idx (vundo-m-idx node)))
-    (or (vundo--mod-timestamp mod-list node)
-        (and (eq idx vundo--last-saved-idx)
-             (eq node (vundo--current-node mod-list))
-             (with-current-buffer vundo--orig-buffer
-               (and (buffer-file-name)
-                    (not (buffer-modified-p))
-                    (visited-file-modtime)))))))
+  (let ((master (vundo--master-eqv-mod-of node)))
+    (or (alist-get master vundo--timestamps nil nil #'eq)
+	(and (eq node (vundo--current-node mod-list))
+	     (with-current-buffer vundo--orig-buffer
+	       (and (buffer-file-name)
+		    (not (buffer-modified-p))
+		    (visited-file-modtime)))))))
 
 ;;; Draw tree
 
@@ -731,6 +768,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "a") #'vundo-stem-root)
     (define-key map (kbd "e") #'vundo-stem-end)
     (define-key map (kbd "l") #'vundo-goto-last-saved)
+    (define-key map (kbd "r") #'vundo-goto-next-saved)
     (define-key map (kbd "q") #'vundo-quit)
     (define-key map (kbd "C-g") #'vundo-quit)
     (define-key map (kbd "RET") #'vundo-confirm)
@@ -1288,18 +1326,30 @@ If ARG < 0, move forward."
       vundo--orig-buffer (current-buffer)
       'incremental))))
 
-(defun vundo-goto-last-saved ()
-  "Goto the last saved node from the current node, if any."
-  (interactive)
-  (when-let* ((cur (vundo--current-node vundo--prev-mod-list) )
-              (dest (vundo--find-last-saved vundo--prev-mod-list cur)))
-    (vundo--check-for-command
-     (vundo--move-to-node cur dest vundo--orig-buffer vundo--prev-mod-list)
-     (vundo--trim-undo-list vundo--orig-buffer dest vundo--prev-mod-list)
-     (vundo--refresh-buffer vundo--orig-buffer (current-buffer) 'incremental))
-    (message
-     "Node saved %s" (format-time-string
-                      "%F %r" (vundo--node-timestamp vundo--prev-mod-list dest)))))
+(defun vundo-goto-last-saved (arg)
+  "Go back to the first saved node prior to the current node, if any.
+With numeric prefix ARG, move that many saved nodes back (ARG<0
+moves forward in history)."
+  (interactive "p")
+  (if-let* ((cur (vundo--current-node vundo--prev-mod-list))
+            (dest (vundo--find-last-saved cur arg)))
+      (progn
+        (unless (eq cur dest)
+          (vundo--check-for-command
+           (vundo--move-to-node cur dest vundo--orig-buffer vundo--prev-mod-list)
+           (vundo--trim-undo-list vundo--orig-buffer dest vundo--prev-mod-list)
+           (vundo--refresh-buffer vundo--orig-buffer (current-buffer) 'incremental)))
+        (message "Node saved %s"
+                 (format-time-string
+                  "%F %r"
+                  (vundo--node-timestamp vundo--prev-mod-list dest))))
+    (message "No such saved node")))
+
+(defun vundo-goto-next-saved (arg)
+  "Go to the ARGth saved node after the current node (default 1).
+For ARG<0, got the last saved node prior to the current node."
+  (interactive "p")
+  (vundo-goto-last-saved (- arg)))
 
 (defun vundo-save (arg)
   "Run `save-buffer' with the current buffer Vundo is operating on.
