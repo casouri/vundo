@@ -517,10 +517,14 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
                                         'reverse))))))))))
 
 ;;; Timestamps
-;; buffer-undo-list contains "timestamp entries" like (t . TIMESTAMP)
-;; which capture the file modification time of the saved file which
-;; an undo changed.  During tree draw, we collect the last of these, and
-;; indicated nodes which had been saved specially.
+;; buffer-undo-list contains "timestamp entries" within an undo like
+;; (t . TIMESTAMP).  These capture the file modification time of the
+;; saved file which that undo changed (i.e. the TIMESTAMP applies to
+;; the prior state).  While reading the undo list, we collect these,
+;; sort them, and during tree draw, indicate nodes which had been
+;; saved specially.  Note that the buffer assocaited with the current
+;; node can be saved, but not yet modified by an undo/redo; this is
+;; handled specially.
 
 (defvar-local vundo--orig-buffer nil
   "Vundo buffer displays the undo tree for this buffer.")
