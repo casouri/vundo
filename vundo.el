@@ -531,12 +531,8 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
 
 (defvar-local vundo--timestamps nil
   "Mapping between the oldest equivalent node and modification time.
-Sorted by time with latest saved mods first.")
-
-(defvar-local vundo--last-saved-idx nil
-  "The last node index with a timestamp seen.
-This is set by ‘vundo--draw-tree’ and ‘vundo-save’, and used by
-‘vundo-goto-last-saved’ and ‘vundo--highlight-last-saved-node’.")
+Sorted by time, with latest saved mods first.  Only undo-based
+modification times are included; see `vundo--node-timestamp'.")
 
 (defun vundo--record-timestamps (mod-list)
   "Record all the timestamps in MOD-LIST.
@@ -647,18 +643,13 @@ Translate according to `vundo-glyph-alist'."
                   vundo-glyph-alist)))
               text 'string))
 
-(defun vundo--draw-tree (mod-list orig-buffer-modified)
-  "Draw the tree in MOD-LIST in current buffer.
-ORIG-BUFFER-MODIFIED is t if the original buffer is not saved to
-the disk.  Set `vundo--last-saved-idx' by side-effect,
-corresponding to the index of the last saved node."
+(defun vundo--draw-tree (mod-list)
+  "Draw the tree in MOD-LIST in current buffer."
   (let* ((root (aref mod-list 0))
          (node-queue (list root))
          (inhibit-read-only t)
-         (inhibit-modification-hooks t)
-         (last-saved-idx -1))
+         (inhibit-modification-hooks t))
     (erase-buffer)
-    (setq vundo--last-saved-idx -1)
     (while node-queue
       (let* ((node (pop node-queue))
              (children (vundo-m-children node))
@@ -666,13 +657,10 @@ corresponding to the index of the last saved node."
              (siblings (and parent (vundo-m-children parent)))
              (only-child-p (and parent (eq (length siblings) 1)))
              (node-last-child-p (and parent (eq node (car (last siblings)))))
-             (node-idx (vundo-m-idx node))
              (mod-ts (vundo--mod-timestamp mod-list node))
              (saved-p (and vundo-highlight-saved-nodes mod-ts))
              (node-face (if saved-p 'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
-        (when (and mod-ts (> node-idx last-saved-idx))
-          (setq last-saved-idx node-idx))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
         (let ((col (max 0 (1- (current-column))))
@@ -729,17 +717,9 @@ corresponding to the index of the last saved node."
         ;; Depth-first search.
         (setq node-queue (append children node-queue))))
 
-    ;; If the associated buffer is unmodified, the last node must be
-    ;; the last saved node even though it doesn’t (yet) have a
-    ;; subsequent node with a timestamp to indicate that.
-    (setq vundo--last-saved-idx
-          (if orig-buffer-modified
-              (if (> last-saved-idx 0) last-saved-idx nil)
-            (vundo-m-idx (vundo--current-node mod-list))))
-    ;; Highlight the last saved node (if any).
-    (when (and vundo-highlight-saved-nodes vundo--last-saved-idx)
-      (vundo--highlight-last-saved-node
-       (aref mod-list vundo--last-saved-idx)))))
+    ;; Highlight the last saved node extra specially
+    (when vundo-highlight-saved-nodes
+      (vundo--highlight-last-saved-node mod-list))))
 
 ;;; Vundo buffer and invocation
 
@@ -846,8 +826,7 @@ This function modifies `vundo--prev-mod-list',
     (when (not incremental)
       (setq vundo--prev-undo-list nil
             vundo--prev-mod-list nil
-            vundo--prev-mod-hash nil
-            vundo--last-saved-idx nil)
+            vundo--prev-mod-hash nil)
       ;; Give the garbage collector a chance to release
       ;; `buffer-undo-list': GC cannot release cons cells when all
       ;; these stuff are referring to it.
@@ -1361,10 +1340,8 @@ Accepts the same interactive arfument ARG as ‘save-buffer’."
   (vundo--check-for-command
    (with-current-buffer vundo--orig-buffer
      (save-buffer arg)))
-  (let* ((cur-node (vundo--current-node vundo--prev-mod-list)))
-    (setq vundo--last-saved-idx (vundo-m-idx cur-node))
-    (when vundo-highlight-saved-nodes
-      (vundo--highlight-last-saved-node cur-node))))
+  (when vundo-highlight-saved-nodes
+    (vundo--highlight-last-saved-node vundo--prev-mod-list)))
 
 ;;; Debug
 
