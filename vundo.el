@@ -726,15 +726,14 @@ corresponding to the index of the last saved node."
         (setq node-queue (append children node-queue))))
 
     ;; If the associated buffer is unmodified, the last node must be
-    ;; the last saved node even though it doesn’t (yet) have a next
-    ;; node with a timestamp to indicate that.
+    ;; the last saved node even though it doesn’t (yet) have a
+    ;; subsequent node with a timestamp to indicate that.
     (setq vundo--last-saved-idx
           (if orig-buffer-modified
               (if (> last-saved-idx 0) last-saved-idx nil)
             (vundo-m-idx (vundo--current-node mod-list))))
-    ;; Update the face of the last saved node (if any).
-    (when (and vundo-highlight-saved-nodes
-               vundo--last-saved-idx)
+    ;; Highlight the last saved node (if any).
+    (when (and vundo-highlight-saved-nodes vundo--last-saved-idx)
       (vundo--highlight-last-saved-node
        (aref mod-list vundo--last-saved-idx)))))
 
