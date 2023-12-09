@@ -644,9 +644,9 @@ Translate according to `vundo-glyph-alist'."
              (siblings (and parent (vundo-m-children parent)))
              (only-child-p (and parent (eq (length siblings) 1)))
              (node-last-child-p (and parent (eq node (car (last siblings)))))
-             (mod-ts (vundo--mod-timestamp mod-list node))
-             (saved-p (and vundo-highlight-saved-nodes mod-ts))
-             (node-face (if saved-p 'vundo-saved 'vundo-node))
+             (mod-ts (vundo--node-timestamp mod-list node))
+             (node-face (if (and vundo-highlight-saved-nodes mod-ts)
+                            'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
