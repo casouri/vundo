@@ -562,22 +562,21 @@ exists."
          (cnt (abs arg))
          (master (vundo--master-eqv-mod-of node))
          (midx (vundo-m-idx master))
-         node)
+         last-node)
     (if (assq master vundo--timestamps)
-        (setq node master)
+        (setq last-node master)
       ;; no TS here, find closest idx on saved list in direction ARG
       (cl-loop with val = (if past -1 most-positive-fixnum)
 	       with op = (if past #'< #'>)
 	       for (n . _) in vundo--timestamps
-               for i upfrom 0
-               if (funcall op val i midx) do (setq val i node n))
-      (when node (setq cnt (1- cnt))))  ; used up one getting started
-    (if (and node (> cnt 0))            ; found one, but more to go
+               for idx = (vundo-m-idx n)
+               if (funcall op val idx midx) do (setq val idx last-node n))
+      (when last-node (setq cnt (1- cnt))))  ; used up one getting started
+    (if (and last-node (> cnt 0))            ; found one, but more to go
         (let ((vt (if past vundo--timestamps (reverse vundo--timestamps))))
-          (while (and vt (not (eq (caar vt) node))) (setq vt (cdr vt)))
-          (car-safe (nthcdr cnt vt)))
-      node)))
-
+          (while (and vt (not (eq (caar vt) last-node))) (setq vt (cdr vt)))
+          (caar (nthcdr cnt vt)))
+      last-node)))
 
 (defun vundo--node-timestamp (mod-list node)
   "Return a timestamp from MOD-LIST for NODE, if any.
