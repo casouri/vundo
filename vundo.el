@@ -581,8 +581,8 @@ exists."
 (defun vundo--node-timestamp (mod-list node)
   "Return a timestamp from MOD-LIST for NODE, if any.
 In addition to undo-based timestamps, this includes the modtime of the
-current buffer (if it is unmodified)."
-  (let ((master (vundo--master-eqv-mod-of node)))
+current buffer (if it has an associated file and is unmodified)."
+  (when-let ((master (vundo--master-eqv-mod-of node)))
     (or (alist-get master vundo--timestamps nil nil #'eq)
 	(and (eq node (vundo--current-node mod-list))
 	     (with-current-buffer vundo--orig-buffer
