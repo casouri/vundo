@@ -578,18 +578,6 @@ exists."
           (car-safe (nthcdr cnt vt)))
       node)))
 
-;; (defun vundo--mod-timestamp (mod-list node)
-;;   "Return the timestamp of mod after NODE in MOD-LIST, if any.
-;; Also checks all equivalent nodes to NODE."
-;;   ;; If the next mod in modlist has a timestamp for any equivalent
-;;   ;; node, this mod/node represents a saved state.
-;;   (seq-some
-;;    (lambda (n)
-;;      (let* ((next-mod-idx (1+ (vundo-m-idx n)))
-;;             (next-mod (when (< next-mod-idx (length mod-list))
-;;                         (aref mod-list next-mod-idx))))
-;;        (and next-mod (vundo-m-timestamp next-mod))))
-;;    (vundo--eqv-list-of node)))
 
 (defun vundo--node-timestamp (mod-list node)
   "Return a timestamp from MOD-LIST for NODE, if any.
