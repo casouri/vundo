@@ -704,11 +704,7 @@ Translate according to `vundo-glyph-alist'."
         ;; Associate the text node in buffer with the node object.
         (vundo--put-node-at-point node)
         ;; Depth-first search.
-        (setq node-queue (append children node-queue))))
-
-    ;; Highlight the last saved node extra specially
-    (when vundo-highlight-saved-nodes
-      (vundo--highlight-last-saved-node mod-list))))
+        (setq node-queue (append children node-queue))))))
 
 ;;; Vundo buffer and invocation
 
@@ -854,15 +850,15 @@ This function modifies `vundo--prev-mod-list',
           ;; Build tree.
           (vundo--build-tree mod-list mod-hash
                              (length vundo--prev-mod-list))))
-
-      ;; Record timestamps
-      (vundo--record-timestamps mod-list)
-
+      
       ;; Update cache.
       (setq vundo--prev-mod-list mod-list
             vundo--prev-mod-hash mod-hash
             vundo--prev-undo-list undo-list
             vundo--orig-buffer orig-buffer)
+      
+      ;; Record timestamps
+      (vundo--record-timestamps mod-list)
 
       ;; 3. Render buffer. We don't need to redraw the tree if there
       ;; is no change to the nodes.
@@ -871,7 +867,11 @@ This function modifies `vundo--prev-mod-list',
 
       ;; Highlight current node.
       (vundo--highlight-node (vundo--current-node mod-list))
-      (goto-char (vundo-m-point (vundo--current-node mod-list))))))
+      (goto-char (vundo-m-point (vundo--current-node mod-list)))
+
+      ;; Highlight the last saved node extra specially
+      (when vundo-highlight-saved-nodes
+        (vundo--highlight-last-saved-node mod-list)))))
 
 (defun vundo--current-node (mod-list)
   "Return the currently highlighted node in MOD-LIST."
