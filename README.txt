@@ -68,6 +68,17 @@ to use that font:
 
     (set-face-attribute 'vundo-default nil :family "Symbola")
 
+Diff:
+
+Vundo uses Emacs' facilities to provide diffs among arbitrary undo
+states: just (m)ark and (d)iff.
+
+Terminal users may encounter unwanted control characters in the diff
+output.  Emacs colors diff buffers itself, so this can be remedied by
+instructing diff not to print color codes:
+
+    (setq diff-switches "-u --color=never")
+
 Comparing to undo-tree:
 
 Vundo doesn’t need to be turned on all the time nor replace the undo

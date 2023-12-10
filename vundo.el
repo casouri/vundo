@@ -888,7 +888,7 @@ This function modifies `vundo--prev-mod-list',
                  'face 'vundo-highlight)
     ;; Make current node’s highlight override last saved node’s
     ;; highlight, should they collide.
-    (overlay-put vundo--highlight-overlay 'priority 1))
+    (overlay-put vundo--highlight-overlay 'priority 2))
   (move-overlay vundo--highlight-overlay
                 (1- (vundo-m-point node))
                 (vundo-m-point node)))
@@ -1050,7 +1050,7 @@ stop. Eg, (6 5 4 3). Return nil if there’s no valid route."
 (defun vundo--list-subtract (l1 l2)
   "Return L1 - L2.
 
-\(vundo--list-subtract '(4 3 2 1) '(2 1))
+\(vundo--list-subtract \='(4 3 2 1) \='(2 1))
 => (4 3)"
   (let ((len1 (length l1))
         (len2 (length l2)))

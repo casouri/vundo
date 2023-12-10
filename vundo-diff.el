@@ -102,7 +102,7 @@ NODE defaults to the current node."
                    'display (vundo--translate "●"))
       (overlay-put vundo-diff--highlight-overlay
                    'face 'vundo-diff-highlight)
-      (overlay-put vundo-diff--highlight-overlay 'priority 2))
+      (overlay-put vundo-diff--highlight-overlay 'priority 1))
     (move-overlay vundo-diff--highlight-overlay
                   (1- (vundo-m-point node))
                   (vundo-m-point node))))
