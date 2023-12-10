@@ -897,19 +897,23 @@ This function modifies `vundo--prev-mod-list',
   "Highlight the last (latest) saved node on MOD-LIST.
 This moves the overlay `vundo--highlight-last-saved-overlay'."
   (let* ((last-saved (car vundo--timestamps))
-         (last-node (car last-saved))
-         (last-ts (cdr last-saved))
          (cur (vundo--current-node mod-list))
          (cur-ts (vundo--node-timestamp mod-list cur))
-         (node (if (and cur-ts
-                        (> (float-time (time-subtract cur-ts last-ts)) 0))
-                   cur last-node))
-         (node-pt (vundo-m-point node)))
-    (unless vundo--highlight-last-saved-overlay
-      (setq vundo--highlight-last-saved-overlay
-            (make-overlay (1- node-pt) node-pt))
-      (overlay-put vundo--highlight-last-saved-overlay 'face 'vundo-last-saved))
-    (move-overlay vundo--highlight-last-saved-overlay (1- node-pt) node-pt)))
+         (node (cond ((and last-saved cur-ts)
+		      (if (> (float-time
+			      (time-subtract cur-ts (cdr last-saved)))
+			     0)
+			  cur (car last-saved)))
+		     (last-saved (car last-saved))
+		     (cur-ts cur)
+		     (t nil)))
+         (node-pt (and node (vundo-m-point node))))
+    (when node-pt
+      (unless vundo--highlight-last-saved-overlay
+        (setq vundo--highlight-last-saved-overlay
+              (make-overlay (1- node-pt) node-pt))
+        (overlay-put vundo--highlight-last-saved-overlay 'face 'vundo-last-saved))
+      (move-overlay vundo--highlight-last-saved-overlay (1- node-pt) node-pt))))
 
 ;;;###autoload
 (defun vundo ()
