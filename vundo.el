@@ -579,17 +579,18 @@ exists."
           (caar (nthcdr cnt vt)))
       last-node)))
 
-(defun vundo--node-timestamp (mod-list node)
+(defun vundo--node-timestamp (mod-list node &optional no-buffer)
   "Return a timestamp from MOD-LIST for NODE, if any.
-In addition to undo-based timestamps, this includes the modtime of the
-current buffer (if it has an associated file and is unmodified)."
+In addition to undo-based timestamps, this includes the modtime
+of the current buffer (if it has an associated file which is
+unmodified and NO-BUFFER is non-nil)."
   (when-let ((master (vundo--master-eqv-mod-of node)))
     (or (alist-get master vundo--timestamps nil nil #'eq)
 	(and (eq node (vundo--current-node mod-list))
 	     (with-current-buffer vundo--orig-buffer
-	       (and (buffer-file-name)
+	       (and (not no-buffer) (buffer-file-name)
 		    (not (buffer-modified-p))
-		    (visited-file-modtime)))))))
+                    (visited-file-modtime)))))))
 
 ;;; Draw tree
 
@@ -645,7 +646,7 @@ Translate according to `vundo-glyph-alist'."
              (siblings (and parent (vundo-m-children parent)))
              (only-child-p (and parent (eq (length siblings) 1)))
              (node-last-child-p (and parent (eq node (car (last siblings)))))
-             (mod-ts (vundo--node-timestamp mod-list node))
+             (mod-ts (vundo--node-timestamp mod-list node 'no-buffer))
              (node-face (if (and vundo-highlight-saved-nodes mod-ts)
                             'vundo-saved 'vundo-node))
              (stem-face (if only-child-p 'vundo-stem 'vundo-branch-stem)))
