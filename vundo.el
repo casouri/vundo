@@ -517,12 +517,13 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
                                         'reverse))))))))))
 
 ;;; Timestamps
-;; buffer-undo-list contains "timestamp entries" within an undo like
+
+;; buffer-undo-list contains "timestamp entries" within a record like
 ;; (t . TIMESTAMP).  These capture the file modification time of the
 ;; saved file which that undo changed (i.e. the TIMESTAMP applies to
 ;; the prior state).  While reading the undo list, we collect these,
 ;; sort them, and during tree draw, indicate nodes which had been
-;; saved specially.  Note that the buffer assocaited with the current
+;; saved specially.  Note that the buffer associated with the current
 ;; node can be saved, but not yet modified by an undo/redo; this is
 ;; handled specially.
 
