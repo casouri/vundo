@@ -1177,6 +1177,13 @@ the INCREMENTAL option in `vundo--refresh-buffer' anymore."
                          return node
                          finally return nil)))
       (with-current-buffer buffer
+	;; XXX TS-TRIM DEBUG CODE, REMOVE
+	(let ((bul buffer-undo-list)
+	      (tul (vundo-m-undo-list possible-trim-point)))
+	  (while (and bul (not (eq bul tul)))
+	    (if (and (consp (car bul)) (eq (caar bul) t))
+		(message "Trimming TS at %s" (format-time-string "%F %r" (cdar bul))))
+	    (setq bul (cdr bul))))
         (setq buffer-undo-list
               (vundo-m-undo-list possible-trim-point)))
       (when vundo--message
