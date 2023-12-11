@@ -565,8 +565,8 @@ exists."
         (setq last-node master)
       ;; no TS here, find closest idx on saved list in direction ARG
       (cl-loop with val = (if past -1 most-positive-fixnum)
-	       with op = (if past #'< #'>)
-	       for (n . _) in vundo--timestamps
+               with op = (if past #'< #'>)
+               for (n . _) in vundo--timestamps
                for idx = (vundo-m-idx n)
                if (funcall op val idx midx) do (setq val idx last-node n))
       (when last-node (setq cnt (1- cnt))))  ; used up one getting started
@@ -584,10 +584,10 @@ of the current buffer (if it has an associated file which is
 unmodified and NO-BUFFER is non-nil)."
   (when-let ((master (vundo--master-eqv-mod-of node)))
     (or (alist-get master vundo--timestamps nil nil #'eq)
-	(and (eq node (vundo--current-node mod-list))
-	     (with-current-buffer vundo--orig-buffer
-	       (and (not no-buffer) (buffer-file-name)
-		    (not (buffer-modified-p))
+        (and (eq node (vundo--current-node mod-list))
+             (with-current-buffer vundo--orig-buffer
+               (and (not no-buffer) (buffer-file-name)
+                    (not (buffer-modified-p))
                     (visited-file-modtime)))))))
 
 ;;; Draw tree
@@ -900,13 +900,13 @@ This moves the overlay `vundo--highlight-last-saved-overlay'."
          (cur (vundo--current-node mod-list))
          (cur-ts (vundo--node-timestamp mod-list cur))
          (node (cond ((and last-saved cur-ts)
-		      (if (> (float-time
-			      (time-subtract cur-ts (cdr last-saved)))
-			     0)
-			  cur (car last-saved)))
-		     (last-saved (car last-saved))
-		     (cur-ts cur)
-		     (t nil)))
+                      (if (> (float-time
+                              (time-subtract cur-ts (cdr last-saved)))
+                             0)
+                          cur (car last-saved)))
+                     (last-saved (car last-saved))
+                     (cur-ts cur)
+                     (t nil)))
          (node-pt (and node (vundo-m-point node))))
     (when node-pt
       (unless vundo--highlight-last-saved-overlay
@@ -1177,13 +1177,13 @@ the INCREMENTAL option in `vundo--refresh-buffer' anymore."
                          return node
                          finally return nil)))
       (with-current-buffer buffer
-	;; XXX TS-TRIM DEBUG CODE, REMOVE
-	(let ((bul buffer-undo-list)
-	      (tul (vundo-m-undo-list possible-trim-point)))
-	  (while (and bul (not (eq bul tul)))
-	    (if (and (consp (car bul)) (eq (caar bul) t))
-		(message "Trimming TS at %s" (format-time-string "%F %r" (cdar bul))))
-	    (setq bul (cdr bul))))
+        ;; XXX TS-TRIM DEBUG CODE, REMOVE
+        (let ((bul buffer-undo-list)
+              (tul (vundo-m-undo-list possible-trim-point)))
+          (while (and bul (not (eq bul tul)))
+            (if (and (consp (car bul)) (eq (caar bul) t))
+                (message "Trimming TS at %s" (format-time-string "%F %r" (cdar bul))))
+            (setq bul (cdr bul))))
         (setq buffer-undo-list
               (vundo-m-undo-list possible-trim-point)))
       (when vundo--message
