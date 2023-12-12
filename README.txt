@@ -16,6 +16,10 @@ should pop up. To move around, type:
   l   to go to the last saved node
   r   to go to the next saved node  
 
+  m   to mark the current node for diff
+  u   to unmark the marked node
+  d   to show a diff between the marked (or parent) and current nodes
+
   q   to quit, you can also type C-g
 
   C-c C-s (or whatever binding you used for save-buffer)
