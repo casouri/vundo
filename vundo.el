@@ -40,6 +40,7 @@
 ;;   a   to go back to the last branching point
 ;;   e   to go forward to the end/tip of the branch
 ;;   l   to go to the last saved node
+;;   r   to go to the next saved node
 ;;
 ;;   m   to mark the current node for diff
 ;;   u   to unmark the marked node
