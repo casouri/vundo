@@ -563,12 +563,12 @@ exists."
          last-node)
     (if (assq master vundo--timestamps)
         (setq last-node master)
-      ;; no TS here, find closest idx on saved list in direction ARG
+      ;; no TS here, find closest master idx on saved list in direction ARG
       (cl-loop with val = (if past -1 most-positive-fixnum)
-               with op = (if past #'< #'>)
+               with between = (if past #'< #'>)
                for (n . _) in vundo--timestamps
                for idx = (vundo-m-idx n)
-               if (funcall op val idx midx) do (setq val idx last-node n))
+               if (funcall between val idx midx) do (setq val idx last-node n))
       (when last-node (setq cnt (1- cnt))))  ; used up one getting started
     (if (and last-node (> cnt 0))            ; found one, but more to go
         (let ((vt (if past vundo--timestamps (reverse vundo--timestamps))))
