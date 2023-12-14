@@ -103,8 +103,9 @@ to run those tests interactively, or use the following batch command:
 
 Changelog (full changelog in NEWS.txt):
 
-<2023-12-08 Fri>: Version 2.5.0: vundo-diff introduced, supporting
-on-demand diff to parent or any marked node.
+<2023-12-17 Sun>: Version 2.2.0: vundo-diff introduced, supporting
+on-demand diff to parent or any marked node.  Improved tree draw
+speed.
 
 <2022-04-04 Mon>: Version 1.0.0
 
