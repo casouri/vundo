@@ -616,8 +616,7 @@ corresponding to the index of the last saved node."
           (setq last-saved-idx node-idx))
         ;; Go to parent.
         (if parent (goto-char (vundo-m-point parent)))
-        (let ((col (max 0 (1- (current-column))))
-              (room-for-another-rx
+        (let ((room-for-another-rx
                (rx-to-string
                 `(or (>= ,(if vundo-compact-display 3 4) ?\s) eol))))
           (if (null parent)
@@ -629,7 +628,7 @@ corresponding to the index of the last saved node."
               ;;             |     child to 1 but is blocked
               ;;             +--4  by that plus sign.
               (while (not (looking-at room-for-another-rx))
-                (vundo--next-line-at-column col)
+                (vundo--next-line-at-column (max 0 (1- (current-column))))
                 ;; When we go down, we could encounter space, EOL, │,
                 ;; ├, or └. Space and EOL should be replaced by │, ├
                 ;; and └ should be replaced by ├.
