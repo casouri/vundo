@@ -1043,7 +1043,9 @@ Basically, return the latest non-undo modification in MOD-LIST."
   "Move from CURRENT node to DEST node by undoing in ORIG-BUFFER.
 ORIG-BUFFER must be at CURRENT state. MOD-LIST is the list you
 get from `vundo--mod-list-from'. You should refresh vundo buffer
-after calling this function.
+after calling this function. (You can call this function
+repeatedly before refreshing, but moving back-and-forth might not
+work, see docstring of ‘vundo--trim-undo-list’.)
 
 This function modifies the content of ORIG-BUFFER."
   (cl-assert (not (eq current dest)))
@@ -1124,7 +1126,15 @@ Because if we only trim once, `buffer-undo-list' either shrinks
 or expands. But if we trim multiple times after multiple
 movements, it could happen that the undo-list first
 shrinks (trimmed) then expands. In that situation we cannot use
-the INCREMENTAL option in `vundo--refresh-buffer' anymore."
+the INCREMENTAL option in `vundo--refresh-buffer' anymore.
+
+Also, if you move back-end-forth with ‘vundo--move-to-node’, it
+might not work: Suppose undo list is [1 2 3], mod-list is [1 2
+3], now we move back to 2, undo list becomes [1 2 3 2’], but
+before we refresh vundo buffer, mod-list will remain [1 2 3], so
+there’s no route from 2 to 3 (you can only move back). Once
+we refresh the buffer and mod-list is updated to [1 2 3 2’], we
+have a route from 3 to 2 (2’->3)."
   (let ((latest-buffer-state-idx
          ;; Among all the MODs that represents a unique buffer
          ;; state, we find the latest one. Because any node
