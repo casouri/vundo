@@ -145,7 +145,7 @@ the original buffer name."
              (vundo--move-to-node marked current orig vundo--prev-mod-list)
              (vundo--trim-undo-list orig current vundo--prev-mod-list)
              (vundo--refresh-buffer orig (current-buffer) 'incremental))
-            (let* ((diff-use-labels nil) ;we let our cleanup handle this
+            (let* ((diff-use-labels nil) ; We let our cleanup handle this.
                    (a (if swapped current marked))
                    (b (if swapped marked current))
                    (abuf (if swapped orig mrkbuf))
