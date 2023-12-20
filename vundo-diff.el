@@ -59,7 +59,8 @@ CURRENT node."
                        collect
                        (list (format "[%d]" idx)
                              (format "<%s> [mod %d] (%s)" orig-name idx stat)
-                             (when (consp ts) (format-time-string "%F %r" ts))))))
+                             (when (consp ts) (format-time-string "%F %r" ts)))))
+        lim)
     (with-current-buffer buf
       (vundo-diff-mode)
       (goto-char (point-min))
@@ -71,16 +72,17 @@ CURRENT node."
               (cl-loop for (name fullname ts) in info
                        for pat in '("---" "+++")
                        if (re-search-forward
-                           (rx-to-string `(and bol ,pat (+ space)
-                                               (group (group (+ (not ?\t)))
-                                                      (* any))
+                           (rx-to-string `(and bol ,pat (+ blank)
+                                               (group (group (+ (not (any ?\n ?\t))))
+                                                      (* nonl))
                                                eol))
                            nil t)
                        collect (cons (match-string-no-properties 2) name)
-                       and do (replace-match
-                               (if ts (concat fullname "\t" ts) fullname)
-                               t t nil 1)))
-             (lim (point)))
+                       and do
+                       (unless lim (setq lim (match-beginning 0)))
+                       (replace-match
+                        (if ts (concat fullname "\t" ts) fullname)
+                        t t nil 1))))
         (when (eq (length change-files) 2)
           (goto-char (point-min))
           (dolist (c change-files) ; change the file names in the diff
@@ -136,24 +138,25 @@ the original buffer name."
       (unwind-protect
 	  (progn
             (vundo--check-for-command
-	     (vundo--move-to-node current marked orig vundo--prev-mod-list)
-	     (with-current-buffer mrkbuf
-	       (insert-buffer-substring-no-properties orig))
-	     (vundo--refresh-buffer orig (current-buffer) 'incremental)
-	     (vundo--move-to-node marked current orig vundo--prev-mod-list)
-	     (vundo--trim-undo-list orig current vundo--prev-mod-list)
-	     (vundo--refresh-buffer orig (current-buffer) 'incremental))
-	    (let* ((a (if swapped current marked))
-	           (b (if swapped marked current))
-		   (abuf (if swapped orig mrkbuf))
-		   (bbuf (if swapped mrkbuf orig))
-		   (dbuf (diff-no-select
-			  abuf bbuf nil t
-			  (get-buffer-create
-			   (concat "*vundo-diff-" oname "*")))))
-	      (vundo-diff--cleanup-diff-buffer oname dbuf current a b)
-	      (display-buffer dbuf)))
-	(kill-buffer mrkbuf)))))
+             (vundo--move-to-node current marked orig vundo--prev-mod-list)
+             (with-current-buffer mrkbuf
+               (insert-buffer-substring-no-properties orig))
+             (vundo--refresh-buffer orig (current-buffer) 'incremental)
+             (vundo--move-to-node marked current orig vundo--prev-mod-list)
+             (vundo--trim-undo-list orig current vundo--prev-mod-list)
+             (vundo--refresh-buffer orig (current-buffer) 'incremental))
+            (let* ((diff-use-labels nil) ;we let our cleanup handle this
+                   (a (if swapped current marked))
+                   (b (if swapped marked current))
+                   (abuf (if swapped orig mrkbuf))
+                   (bbuf (if swapped mrkbuf orig))
+                   (dbuf (diff-no-select
+                          abuf bbuf nil t
+                          (get-buffer-create
+                           (concat "*vundo-diff-" oname "*")))))
+              (vundo-diff--cleanup-diff-buffer oname dbuf current a b)
+              (display-buffer dbuf)))
+        (kill-buffer mrkbuf)))))
 
 (defconst vundo-diff-font-lock-keywords
   `((,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
