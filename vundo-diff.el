@@ -87,7 +87,9 @@ CURRENT node."
           (goto-char (point-min))
           (dolist (c change-files) ; change the file names in the diff
             (when (search-forward (car c) lim t)
-              (replace-match (cdr c)))))))))
+              (replace-match (cdr c))))))
+
+      (run-hooks 'vundo-diff-setup-hook))))
 
 ;;;###autoload
 (defun vundo-diff-mark (&optional node)
