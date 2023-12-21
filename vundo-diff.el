@@ -45,6 +45,12 @@
 (defvar-local vundo-diff--highlight-overlay nil
   "Overlay used to highlight the selected node.")
 
+(defvar-local vundo-diff--owns-window nil
+  "The window was created for vundo-diff.
+- 1 when the window is owned.
+- 0 when it's not.
+- nil when uninitialized.")
+
 (defun vundo-diff--cleanup-diff-buffer (orig-name buf current from to)
   "Update diff headers in BUF.
 Headers are updated to indicate the diff in the contents of
@@ -90,6 +96,13 @@ CURRENT node."
               (replace-match (cdr c))))))
 
       (run-hooks 'vundo-diff-setup-hook))))
+
+(defun vundo-diff--global-window-count ()
+  "Return the total number of windows."
+  (let ((count 0))
+    (dolist (frame (frame-list))
+      (setq count (+ count (length (window-list frame)))))
+    count))
 
 ;;;###autoload
 (defun vundo-diff-mark (&optional node)
@@ -158,7 +171,22 @@ the original buffer name."
                           (get-buffer-create
                            (concat "*vundo-diff-" oname "*")))))
               (vundo-diff--cleanup-diff-buffer oname dbuf current a b)
-              (display-buffer dbuf)))
+
+              (let ((window-count-prev nil)
+                    (window-count-next nil)
+                    (owns-window-unset (null vundo-diff--owns-window)))
+
+                (when owns-window-unset
+                  (setq window-count-prev (vundo-diff--global-window-count)))
+
+                (display-buffer dbuf)
+
+                (when owns-window-unset
+                  (setq window-count-next (vundo-diff--global-window-count))
+                  (setq vundo-diff--owns-window
+                        (if (eq window-count-prev window-count-next)
+                            0
+                          1))))))
         (kill-buffer mrkbuf)))))
 
 ;;;###autoload
@@ -170,10 +198,14 @@ the original buffer name."
            (oname (buffer-name orig))
            (dbuf (get-buffer (concat "*vundo-diff-" oname "*"))))
       (when dbuf
-        (let ((dbuf-window (get-buffer-window dbuf)))
-          (when dbuf-window
-            (delete-window dbuf-window))
-          (kill-buffer dbuf))))))
+        (when (eq vundo-diff--owns-window 1)
+          (let ((dbuf-window (get-buffer-window dbuf)))
+            (when dbuf-window
+              (delete-window dbuf-window))))
+        ;; Re-initialize if the diff window is every created again
+        ;; for this `vundo' buffer.
+        (setq vundo-diff--owns-window nil)
+        (kill-buffer dbuf)))))
 
 (defconst vundo-diff-font-lock-keywords
   `((,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
