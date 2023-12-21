@@ -202,6 +202,10 @@
   "If non-nil, vundo will roll back the change when it quits."
   :type 'boolean)
 
+(defcustom vundo-diff-quit nil
+  "If non-nil, vundo will close the `vundo-diff' buffer on quit."
+  :type 'boolean)
+
 (defcustom vundo-highlight-saved-nodes t
   "If non-nil, vundo will highlight nodes which have been saved and then modified.
 The face `vundo-saved' is used for saved nodes, except for the
@@ -706,6 +710,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
         (kill-buffer-and-window))))
 
 (declare-function vundo-diff "vundo-diff")
+(declare-function vundo-diff-quit "vundo-diff")
 (declare-function vundo-diff-mark "vundo-diff")
 (declare-function vundo-diff-unmark "vundo-diff")
 (defvar vundo-mode-map
@@ -969,6 +974,8 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
       vundo--orig-buffer vundo--prev-mod-list))
    (with-current-buffer vundo--orig-buffer
      (setq-local buffer-read-only nil))
+   (when vundo-diff-quit
+     (vundo-diff-quit))
    (let* ((orig-buffer vundo--orig-buffer)
           (orig-window (get-buffer-window orig-buffer)))
      (kill-buffer-and-window)

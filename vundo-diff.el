@@ -161,6 +161,20 @@ the original buffer name."
               (display-buffer dbuf)))
         (kill-buffer mrkbuf)))))
 
+;;;###autoload
+(defun vundo-diff-quit ()
+  "Close the diff buffer & window, when found."
+  (interactive)
+  (when vundo--orig-buffer
+    (let* ((orig vundo--orig-buffer)
+           (oname (buffer-name orig))
+           (dbuf (get-buffer (concat "*vundo-diff-" oname "*"))))
+      (when dbuf
+        (let ((dbuf-window (get-buffer-window dbuf)))
+          (when dbuf-window
+            (delete-window dbuf-window))
+          (kill-buffer dbuf))))))
+
 (defconst vundo-diff-font-lock-keywords
   `((,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
           (+ ?\s) ?\((group (or "Parent" "Current")) ?\))
