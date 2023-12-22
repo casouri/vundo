@@ -539,11 +539,11 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
 In addition to undo-based timestamps, this includes the modtime of the
 current buffer (if unmodified)."
   (let* ((idx (vundo-m-idx node))
-	 (current (vundo--current-node mod-list)))
+         (current (vundo--current-node mod-list)))
     (or (vundo--mod-timestamp mod-list idx)
-	(and (eq node current) (eq idx vundo--last-saved-idx)
+        (and (eq node current) (eq idx vundo--last-saved-idx)
              (with-current-buffer vundo--orig-buffer
-	       (and (buffer-file-name)
+               (and (buffer-file-name)
                     (not (buffer-modified-p))
                     (visited-file-modtime)))))))
 ;;; Draw tree

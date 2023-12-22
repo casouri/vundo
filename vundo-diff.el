@@ -126,18 +126,18 @@ Displays in a separate diff buffer with name based on
 the original buffer name."
   (interactive)
   (let* ((orig vundo--orig-buffer)
-	 (oname (buffer-name orig))
-	 (current (vundo--current-node vundo--prev-mod-list))
-	 (marked (or vundo-diff--marked-node (vundo-m-parent current)))
-	 swapped
-	 mrkbuf)
+         (oname (buffer-name orig))
+         (current (vundo--current-node vundo--prev-mod-list))
+         (marked (or vundo-diff--marked-node (vundo-m-parent current)))
+         swapped
+         mrkbuf)
     (if (or (not current) (not marked) (eq current marked))
-	(message "vundo diff not available.")
+        (message "vundo diff not available.")
       (setq swapped (> (vundo-m-idx marked) (vundo-m-idx current)))
       (setq mrkbuf (get-buffer-create
-		    (make-temp-name (concat oname "-vundo-diff-marked"))))
+                    (make-temp-name (concat oname "-vundo-diff-marked"))))
       (unwind-protect
-	  (progn
+          (progn
             (vundo--check-for-command
              (vundo--move-to-node current marked orig vundo--prev-mod-list)
              (with-current-buffer mrkbuf
