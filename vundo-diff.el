@@ -129,10 +129,11 @@ the original buffer name."
 	 (oname (buffer-name orig))
 	 (current (vundo--current-node vundo--prev-mod-list))
 	 (marked (or vundo-diff--marked-node (vundo-m-parent current)))
-	 (swapped (> (vundo-m-idx marked) (vundo-m-idx current)))
+	 swapped
 	 mrkbuf)
     (if (or (not current) (not marked) (eq current marked))
 	(message "vundo diff not available.")
+      (setq swapped (> (vundo-m-idx marked) (vundo-m-idx current)))
       (setq mrkbuf (get-buffer-create
 		    (make-temp-name (concat oname "-vundo-diff-marked"))))
       (unwind-protect
