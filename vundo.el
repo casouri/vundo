@@ -1359,3 +1359,7 @@ TYPE is the type of buffer you want."
 (provide 'vundo)
 
 ;;; vundo.el ends here
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:

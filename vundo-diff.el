@@ -179,3 +179,7 @@ the original buffer name."
 (provide 'vundo-diff)
 
 ;;; vundo-diff.el ends here
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
