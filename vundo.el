@@ -562,7 +562,7 @@ current buffer (if unmodified)."
 (defun vundo--next-line-at-column (col)
   "Move point to next line column COL."
   (unless (and (eq 0 (forward-line))
-               (not (eq (point) (point-max))))
+               (not (eobp)))
     (goto-char (point-max))
     (insert "\n"))
   (move-to-column col)
