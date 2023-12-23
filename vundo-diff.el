@@ -64,10 +64,10 @@ CURRENT node."
     (with-current-buffer buf
       (vundo-diff-mode)
       (goto-char (point-min))
-      (insert (concat (propertize "vundo-diff: " 'font-lock-face 'diff-header)
-                      (propertize  orig-name 'font-lock-face
-                                   '(diff-file-header diff-header))
-                      "\n"))
+      (insert (propertize "vundo-diff: " 'font-lock-face 'diff-header)
+              (propertize  orig-name 'font-lock-face
+                           '(diff-file-header diff-header))
+              "\n")
       (let* ((change-files
               (cl-loop for (name fullname ts) in info
                        for pat in '("---" "+++")
