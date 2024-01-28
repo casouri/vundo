@@ -538,13 +538,19 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
 ;; handled specially.
 
 (defvar-local vundo--timestamps nil
-  "Mapping between the oldest equivalent node and modification time.
+  "An alist mapping mods to modification times.
+
+When there are multiple mods corresponding to the same node in
+the undo tree, use the master equivalent mod as the
+key (‘vundo--master-eqv-mod-of’).
+
 Sorted by time, with latest saved mods first.  Only undo-based
 modification times are included; see `vundo--node-timestamp'.")
 
 (defun vundo--record-timestamps (mod-list)
-  "Record all the timestamps in MOD-LIST."
-  (let ((timestamps '()))
+  "Return an alist mapping mods in MOD-LIST to timestamps.
+The alist is sorted by time, with latest saved mods first."
+  (let ((timestamps ()))
     (cl-loop for idx from 1 below (length mod-list)
              for ts = (vundo-m-timestamp (aref mod-list idx))
              if ts do
@@ -552,9 +558,12 @@ modification times are included; see `vundo--node-timestamp'.")
                     (master (vundo--master-eqv-mod-of mod-node))
                     (old-ts (cdr (assq master timestamps))))
                (when (and old-ts (time-less-p ts old-ts))
-                 (setq ts old-ts)) ; equivalent node modified again? take the newer time
-               (setf (alist-get master timestamps nil nil #'eq) ts)))
-    (sort timestamps  ; sort latest first
+                 ;; Equivalent node modified again? take the newer time.
+                 (setq ts old-ts))
+               ;; Push the new pair to TIMESTAMPS, so it overrides
+               ;; previously pushed pairs.
+               (push (cons master ts) timestamps)))
+    (sort timestamps  ; Sort latest first.
           (lambda (a b) (time-less-p (cdr b) (cdr a))))))
 
 (defun vundo--find-last-saved (node &optional arg)
@@ -571,16 +580,23 @@ exists."
          last-node)
     (if (assq master vundo--timestamps)
         (setq last-node master)
-      ;; no TS here, find closest master idx on saved list in direction ARG
+      ;; No timestamp here, find closest master idx on saved list in
+      ;; the direction indicated by ARG.
       (cl-loop with val = (if past -1 most-positive-fixnum)
                with between = (if past #'< #'>)
                for (n . _) in vundo--timestamps
                for idx = (vundo-m-idx n)
-               if (funcall between val idx midx) do (setq val idx last-node n))
-      (when last-node (setq cnt (1- cnt))))  ; used up one getting started
-    (if (and last-node (> cnt 0))            ; found one, but more to go
-        (let ((vt (if past vundo--timestamps (reverse vundo--timestamps))))
-          (while (and vt (not (eq (caar vt) last-node))) (setq vt (cdr vt)))
+               if (funcall between val idx midx)
+               do (setq val idx last-node n))
+      ;; Use up one count when getting started.
+      (when last-node (setq cnt (1- cnt))))
+
+    ;; Found one, but more to go.
+    (if (and last-node (> cnt 0))
+        (let ((vt (if past vundo--timestamps
+                    (reverse vundo--timestamps))))
+          (while (and vt (not (eq (caar vt) last-node)))
+            (setq vt (cdr vt)))
           (caar (nthcdr cnt vt)))
       last-node)))
 
@@ -694,7 +710,8 @@ Translate according to `vundo-glyph-alist'."
                            'face stem-face)
                           (propertize (vundo--translate "○")
                                       'face node-face))
-                ;; We must break the line.  Delete the previously inserted char.
+                ;; We must break the line. Delete the previously
+                ;; inserted char.
                 (delete-char -1)
                 (insert (propertize
                          (vundo--translate
@@ -918,8 +935,10 @@ Consults the alist of TIMESTAMPS.  This moves the overlay
       (unless vundo--highlight-last-saved-overlay
         (setq vundo--highlight-last-saved-overlay
               (make-overlay (1- node-pt) node-pt))
-        (overlay-put vundo--highlight-last-saved-overlay 'face 'vundo-last-saved))
-      (move-overlay vundo--highlight-last-saved-overlay (1- node-pt) node-pt))))
+        (overlay-put vundo--highlight-last-saved-overlay
+                     'face 'vundo-last-saved))
+      (move-overlay vundo--highlight-last-saved-overlay
+                    (1- node-pt) node-pt))))
 
 ;;;###autoload
 (defun vundo ()
@@ -1338,9 +1357,12 @@ moves forward in history)."
       (progn
         (unless (eq cur dest)
           (vundo--check-for-command
-           (vundo--move-to-node cur dest vundo--orig-buffer vundo--prev-mod-list)
-           (vundo--trim-undo-list vundo--orig-buffer dest vundo--prev-mod-list)
-           (vundo--refresh-buffer vundo--orig-buffer (current-buffer) 'incremental)))
+           (vundo--move-to-node
+            cur dest vundo--orig-buffer vundo--prev-mod-list)
+           (vundo--trim-undo-list
+            vundo--orig-buffer dest vundo--prev-mod-list)
+           (vundo--refresh-buffer
+            vundo--orig-buffer (current-buffer) 'incremental)))
         (message "Node saved %s"
                  (format-time-string
                   "%F %r"
@@ -1361,7 +1383,8 @@ Accepts the same interactive arfument ARG as ‘save-buffer’."
    (with-current-buffer vundo--orig-buffer
      (save-buffer arg)))
   (when vundo-highlight-saved-nodes
-    (vundo--highlight-last-saved-node vundo--prev-mod-list vundo--timestamps)))
+    (vundo--highlight-last-saved-node
+     vundo--prev-mod-list vundo--timestamps)))
 
 ;;; Debug
 
