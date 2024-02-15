@@ -34,6 +34,14 @@
 (require 'diff-mode)
 (eval-when-compile (require 'cl-lib))
 
+(defcustom vundo-diff-quit t
+  "If non-nil, bury the `vundo-diff' window when vundo is quit.
+If set to \\='kill, the diff buffer will also be killed."
+  :group 'vundo
+  :type '(choice (const :tag "Do not quit" nil)
+                 (const :tag "Quit window" t)
+                 (const :tag "Quit window and kill buffer" kill)))
+
 (defface vundo-diff-highlight
   '((((background light)) .
      (:inherit vundo-highlight :foreground "DodgerBlue4"))
@@ -120,6 +128,14 @@ NODE defaults to the current node."
     (when vundo-diff--highlight-overlay
       (delete-overlay vundo-diff--highlight-overlay)
       (setq vundo-diff--highlight-overlay nil))))
+
+(defun vundo-diff--quit ()
+  "Quit the `vundo-diff' window and possibly kill buffer."
+  (let* ((buf (get-buffer (concat "*vundo-diff-" (buffer-name) "*")))
+	 (win (and buf (get-buffer-window buf)))
+         (kill (eq vundo-diff-quit 'kill)))
+    (if win (quit-window kill win)
+      (when (and buf kill) (kill-buffer buf)))))
 
 ;;;###autoload
 (defun vundo-diff ()
