@@ -556,13 +556,13 @@ The alist is sorted by time, with latest saved mods first."
              if ts do
              (let* ((mod-node (aref mod-list (1- idx)))
                     (master (vundo--master-eqv-mod-of mod-node))
-                    (old-ts (cdr (assq master timestamps))))
+                    (entry (assq master timestamps))
+                    (old-ts (cdr entry)))
                (when (and old-ts (time-less-p ts old-ts))
                  ;; Equivalent node modified again? take the newer time.
                  (setq ts old-ts))
-               ;; Push the new pair to TIMESTAMPS, so it overrides
-               ;; previously pushed pairs.
-               (push (cons master ts) timestamps)))
+               (if entry (setcdr entry ts)
+                 (push (cons master ts) timestamps))))
     (sort timestamps  ; Sort latest first.
           (lambda (a b) (time-less-p (cdr b) (cdr a))))))
 
