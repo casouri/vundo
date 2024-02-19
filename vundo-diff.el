@@ -129,6 +129,7 @@ NODE defaults to the current node."
       (delete-overlay vundo-diff--highlight-overlay)
       (setq vundo-diff--highlight-overlay nil))))
 
+;;;###autoload
 (defun vundo-diff--quit ()
   "Quit the `vundo-diff' window and possibly kill buffer."
   (let* ((buf (get-buffer (concat "*vundo-diff-" (buffer-name) "*")))
