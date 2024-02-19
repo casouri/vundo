@@ -161,7 +161,6 @@
 (require 'cl-lib)
 (require 'seq)
 (require 'subr-x)
-(require 'vundo-diff)
 
 ;;; Customization
 
@@ -746,7 +745,6 @@ WINDOW is the window that was/is displaying the vundo buffer."
 (declare-function vundo-diff "vundo-diff")
 (declare-function vundo-diff-mark "vundo-diff")
 (declare-function vundo-diff-unmark "vundo-diff")
-(declare-function vundo-diff--quit "vundo-diff")
 (defvar vundo-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "f") #'vundo-forward)
@@ -1030,7 +1028,6 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
      (when (window-live-p orig-window)
        (select-window orig-window))
      (with-current-buffer orig-buffer
-       (vundo-diff--quit)
        (run-hooks 'vundo-post-exit-hook)))))
 
 (defun vundo-confirm ()
@@ -1044,7 +1041,6 @@ Roll back changes if `vundo-roll-back-on-quit' is non-nil."
     (when (window-live-p orig-window)
       (select-window orig-window))
     (with-current-buffer orig-buffer
-      (vundo-diff--quit)
       (run-hooks 'vundo-post-exit-hook))))
 
 ;;; Traverse undo tree
