@@ -161,6 +161,7 @@
 (require 'cl-lib)
 (require 'seq)
 (require 'subr-x)
+(require 'vundo-diff)
 
 ;;; Customization
 
