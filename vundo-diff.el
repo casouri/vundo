@@ -132,7 +132,7 @@ NODE defaults to the current node."
 (defun vundo-diff--quit ()
   "Quit the `vundo-diff' window and possibly kill buffer."
   (let* ((buf (get-buffer (concat "*vundo-diff-" (buffer-name) "*")))
-	 (win (and buf (get-buffer-window buf)))
+	     (win (and buf (get-buffer-window buf)))
          (kill (eq vundo-diff-quit 'kill)))
     (if win (quit-window kill win)
       (when (and buf kill) (kill-buffer buf)))))
@@ -143,6 +143,9 @@ NODE defaults to the current node."
 Displays in a separate diff buffer with name based on
 the original buffer name."
   (interactive)
+  ;; We can’t add this hook locally, because the hook runs in the
+  ;; original buffer.
+  (add-hook 'vundo-post-exit-hook #'vundo-diff--quit 0)
   (let* ((orig vundo--orig-buffer)
          (oname (buffer-name orig))
          (current (vundo--current-node vundo--prev-mod-list))
