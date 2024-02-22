@@ -36,9 +36,10 @@ between are highlighted with bold face.
       ┗━━○──○──○
          B  D
 
-By default, you need to press RET to “commit” your change and if you
-quit with q or C-g, the changes made by vundo are rolled back. You can
-set ‘vundo-roll-back-on-quit’ to nil to disable rolling back.
+By default, you need to press RET to “commit” your change and return
+to the buffer.  If instead you quit with q or C-g, the changes made by
+vundo are rolled back. You can set ‘vundo-roll-back-on-quit’ to nil to
+disable rolling back.
 
 You might see some green nodes in the tree, those are the buffer
 states that have been saved to disk; the last saved node is emphasized
@@ -77,7 +78,8 @@ to use that font:
 Diff:
 
 Vundo uses Emacs' facilities to provide diffs among arbitrary undo
-states: just (m)ark and (d)iff.
+states: just (m)ark and (d)iff.  By default, vundo's diff window is
+buried when vundo quits; see `vundo-diff-quit' for other options.
 
 Terminal users may encounter unwanted control characters in the diff
 output.  Emacs colors diff buffers itself, so this can be remedied by
@@ -104,6 +106,9 @@ to run those tests interactively, or use the following batch command:
 
 
 Changelog (full changelog in NEWS.txt):
+
+<2023-02-16 Fri>: Version 2.3.0: navigate among all saved nodes.
+Automatically bury the vundo-diff window when vundo quits.
 
 <2023-12-17 Sun>: Version 2.2.0: vundo-diff introduced, supporting
 on-demand diff to parent or any marked node.  Improved tree draw
