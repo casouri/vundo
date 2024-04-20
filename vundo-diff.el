@@ -132,7 +132,7 @@ NODE defaults to the current node."
 (defun vundo-diff--quit ()
   "Quit the `vundo-diff' window and possibly kill buffer."
   (let* ((buf (get-buffer (concat "*vundo-diff-" (buffer-name) "*")))
-	     (win (and buf (get-buffer-window buf)))
+         (win (and buf (get-buffer-window buf)))
          (kill (eq vundo-diff-quit 'kill)))
     (if win (quit-window kill win)
       (when (and buf kill) (kill-buffer buf)))))
