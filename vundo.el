@@ -756,6 +756,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "p") #'vundo-previous)
     (define-key map (kbd "<up>") #'vundo-previous)
     (define-key map (kbd "a") #'vundo-stem-root)
+    (define-key map (kbd "w") #'vundo-next-root)
     (define-key map (kbd "e") #'vundo-stem-end)
     (define-key map (kbd "l") #'vundo-goto-last-saved)
     (define-key map (kbd "r") #'vundo-goto-next-saved)
@@ -1318,6 +1319,29 @@ If ARG < 0, move forward."
         this next vundo--orig-buffer vundo--prev-mod-list)
        (setq this next
              next (vundo-m-parent this)))
+     (vundo--trim-undo-list
+      vundo--orig-buffer this vundo--prev-mod-list)
+     (vundo--refresh-buffer
+      vundo--orig-buffer (current-buffer)
+      'incremental))))
+
+(defun vundo-next-root ()
+  "Move to the beginning of the next stem."
+  (interactive)
+  (vundo--check-for-command
+   (when-let* ((this (vundo--current-node vundo--prev-mod-list))
+               ;; If NEXT is nil, ie. this node doesn’t have a child, do
+               ;; nothing.
+               (next (car (vundo-m-children this))))
+     (vundo--move-to-node
+      this next vundo--orig-buffer vundo--prev-mod-list)
+     (setq this next
+           next (car (vundo-m-children this)))
+     (while (and next (not (vundo--stem-root-p this)))
+       (vundo--move-to-node
+        this next vundo--orig-buffer vundo--prev-mod-list)
+       (setq this next
+             next (car (vundo-m-children this))))
      (vundo--trim-undo-list
       vundo--orig-buffer this vundo--prev-mod-list)
      (vundo--refresh-buffer
