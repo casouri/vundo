@@ -1,3 +1,10 @@
+TBD
+
+New features:
+
+- Now there’s a new command ‘w’ in the vundo buffer, typing it brings
+  you forward to the next branching point.
+
 <2023-12-08 Fri>: Version 2.5.0
 
 vundo-diff introduced, providing on-demand diff functionality.  Diff's
