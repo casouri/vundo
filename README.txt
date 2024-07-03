@@ -20,6 +20,7 @@ should pop up. To move around, type:
   m   to mark the current node for diff
   u   to unmark the marked node
   d   to show a diff between the marked (or parent) and current nodes
+  K   to truncate the undo list prior to a selected time-stamped node
 
   q   to quit, you can also type C-g
 

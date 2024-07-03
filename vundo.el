@@ -45,6 +45,7 @@
 ;;   m   to mark the current node for diff
 ;;   u   to unmark the marked node
 ;;   d   to show a diff between the marked (or parent) and current nodes
+;;   K   to truncate the undo list prior to a selected time-stamped node
 ;;
 ;;   q   to quit, you can also type C-g
 ;;
@@ -161,6 +162,7 @@
 (require 'cl-lib)
 (require 'seq)
 (require 'subr-x)
+(require 'time-date)
 
 ;;; Customization
 
@@ -768,6 +770,7 @@ WINDOW is the window that was/is displaying the vundo buffer."
     (define-key map (kbd "d") #'vundo-diff)
     (define-key map (kbd "i") #'vundo--inspect)
     (define-key map (kbd "D") #'vundo--debug)
+    (define-key map (kbd "K") #'vundo-truncate-undo-at-node)
 
     (define-key map [remap save-buffer] #'vundo-save)
     map)
@@ -940,6 +943,45 @@ Consults the alist of TIMESTAMPS.  This moves the overlay
                      'face 'vundo-last-saved))
       (move-overlay vundo--highlight-last-saved-overlay
                     (1- node-pt) node-pt))))
+
+(defun vundo-truncate-undo-at-node (node &optional timestamp)
+  "Truncate the buffer's undo list, removing entries before NODE.
+If TIMESTAMP is provided, use it to identify a saved node to
+trim to.  Interactively, NODE is selected based on its saved
+timestamp, if any saved nodes exist."
+  (interactive
+   (let* ((ts-list
+           (mapcar (lambda (entry)
+                     (cons (concat (format-time-string "%FT%T%z [" (cdr entry))
+                                   (seconds-to-string
+                                    (float-time (time-since (cdr entry))))
+                                   "]")
+                           entry))
+                   (reverse vundo--timestamps)))
+          (table (lambda (string pred action)
+		   (if (eq action 'metadata) ; timestamps is pre-sorted
+		       `(metadata (display-sort-function . ,#'identity))
+		     (complete-with-action action ts-list string pred)))))
+     (or (and ts-list
+	      (let* ((key (completing-read "Trim undo records prior to timestamp: "
+					  table nil t))
+                     (entry (alist-get key ts-list nil nil #'equal)))
+		(list (car entry) (cdr entry))))
+         (progn (message "No timestamps found.")
+                (list nil nil)))))
+  (if (and (null node) timestamp)
+      (setq node (car (cl-find-if (lambda (x) (equal (cdr x) timestamp)) vundo--timestamps))))
+  (when (and node
+             (or (not timestamp)
+                 (yes-or-no-p
+                  (format "Permanently remove all undo information prior to %s? "
+                          (seconds-to-string
+                           (float-time (time-since timestamp)))))))
+    (setcdr (vundo-m-undo-list node) nil)
+    (vundo--refresh-buffer vundo--orig-buffer (current-buffer))
+    (when vundo--roll-back-to-this
+        (setq vundo--roll-back-to-this
+              (vundo--current-node vundo--prev-mod-list)))))
 
 ;;;###autoload
 (defun vundo ()
