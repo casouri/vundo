@@ -957,7 +957,10 @@ timestamp, if any saved nodes exist."
                                     (float-time (time-since (cdr entry))))
                                    "]")
                            entry))
-                   (reverse vundo--timestamps)))
+                   (reverse (seq-filter
+                             (lambda (e) ; anything to remove?
+                               (and (car e) (cdr (vundo-m-undo-list (car e)))))
+                             vundo--timestamps))))
           (table (lambda (string pred action)
 		   (if (eq action 'metadata) ; timestamps is pre-sorted
 		       `(metadata (display-sort-function . ,#'identity))
