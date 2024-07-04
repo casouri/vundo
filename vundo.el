@@ -978,7 +978,7 @@ timestamp, if any saved nodes exist."
   (when (and node
              (yes-or-no-p
               (format "Permanently remove all undo information prior to %s? "
-                      (if timestamp (format-time-string "%FT%T%z [" timestamp)
+                      (if timestamp (format-time-string "%FT%T%z" timestamp)
                         "this node"))))
     (setcdr (vundo-m-undo-list node) nil)
     (vundo--refresh-buffer vundo--orig-buffer (current-buffer))
