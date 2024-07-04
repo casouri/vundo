@@ -946,28 +946,33 @@ Consults the alist of TIMESTAMPS.  This moves the overlay
 
 (defun vundo-truncate-undo-at-node (node &optional timestamp)
   "Truncate the buffer's undo list, removing entries before NODE.
-If TIMESTAMP is provided, use it to identify a saved node to
-trim to.  Interactively, NODE is selected based on its saved
-timestamp, if any saved nodes exist."
+If TIMESTAMP is provided and NODE is nil, use the timestamp to
+identify a saved node to trim to.  Interactively, NODE is
+selected based on its saved timestamp, if any saved nodes exist."
   (interactive
-   (let* ((ts-list
-           (mapcar (lambda (entry)
-                     (cons (concat (format-time-string "%FT%T%z [" (cdr entry))
-                                   (seconds-to-string
-                                    (float-time (time-since (cdr entry))))
-                                   "]")
-                           entry))
-                   (reverse (seq-filter
-                             (lambda (e) ; anything to remove?
-                               (and (car e) (cdr (vundo-m-undo-list (car e)))))
-                             vundo--timestamps))))
+   (let* ((undo-cnt (length (buffer-local-value
+                             'buffer-undo-list vundo--orig-buffer)))
+          (ts-list
+           (mapcar
+            (lambda (entry)
+              (cons (concat (format-time-string "%FT%T%z [" (cdr entry))
+                            (seconds-to-string
+                             (float-time (time-since (cdr entry))))
+                            (let* ((trim-cnt (length (cdr (vundo-m-undo-list (car entry)))))
+                                   (percentage (* 100 (/ (float trim-cnt) undo-cnt))))
+                              (format "] (%d records, %0.1f%%)" trim-cnt percentage)))
+                    entry))
+            (reverse (seq-filter
+                      (lambda (e)       ; anything to remove?
+                        (and (car e) (cdr (vundo-m-undo-list (car e)))))
+                      vundo--timestamps))))
           (table (lambda (string pred action)
 		   (if (eq action 'metadata) ; timestamps pre-sorted
 		       `(metadata (display-sort-function . ,#'identity))
 		     (complete-with-action action ts-list string pred)))))
      (or (and ts-list
 	      (let* ((key (completing-read "Trim undo records prior to timestamp: "
-					  table nil t))
+					   table nil t))
                      (entry (alist-get key ts-list nil nil #'equal)))
 		(list (car entry) (cdr entry))))
          (progn (message "No timestamps found.")
@@ -975,19 +980,24 @@ timestamp, if any saved nodes exist."
   (if (and (null node) timestamp)
       (setq node (car (cl-find-if (lambda (x) (equal (cdr x) timestamp))
                                   vundo--timestamps))))
-  (when (and node
-             (yes-or-no-p
-              (format "Permanently remove all undo information prior to %s? "
-                      (if timestamp (format-time-string "%FT%T%z" timestamp)
-                        "this node"))))
-    (let* ((undo-list (vundo-m-undo-list node))
-           (len (length (cdr undo-list))))
-      (setcdr undo-list nil)
-      (message "Trimmed %d undo-list records" len))
-    (vundo--refresh-buffer vundo--orig-buffer (current-buffer))
-    (when vundo--roll-back-to-this
-      (setq vundo--roll-back-to-this
-            (vundo--current-node vundo--prev-mod-list)))))
+  (if (and node
+           (or (not (called-interactively-p 'interactive))
+               (yes-or-no-p
+                (format "Permanently remove all undo information prior to %s? "
+                        (if timestamp (format-time-string "%FT%T%z" timestamp)
+                          "this node")))))
+      (progn
+        (let* ((undo-list (vundo-m-undo-list node))
+               (len (length (cdr undo-list))))
+          (setcdr undo-list nil)
+          (when (called-interactively-p 'interactive)
+            (message "Trimmed %d undo-list records" len)))
+        (vundo--refresh-buffer vundo--orig-buffer (current-buffer))
+        (when vundo--roll-back-to-this
+          (setq vundo--roll-back-to-this
+                (vundo--current-node vundo--prev-mod-list))))
+    (when (called-interactively-p 'interactive)
+        (message "No undo-list records removed"))))
 
 ;;;###autoload
 (defun vundo ()
