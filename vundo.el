@@ -980,11 +980,14 @@ timestamp, if any saved nodes exist."
               (format "Permanently remove all undo information prior to %s? "
                       (if timestamp (format-time-string "%FT%T%z" timestamp)
                         "this node"))))
-    (setcdr (vundo-m-undo-list node) nil)
+    (let* ((undo-list (vundo-m-undo-list node))
+           (len (length (cdr undo-list))))
+      (setcdr undo-list nil)
+      (message "Trimmed %d undo-list records" len))
     (vundo--refresh-buffer vundo--orig-buffer (current-buffer))
     (when vundo--roll-back-to-this
-        (setq vundo--roll-back-to-this
-              (vundo--current-node vundo--prev-mod-list)))))
+      (setq vundo--roll-back-to-this
+            (vundo--current-node vundo--prev-mod-list)))))
 
 ;;;###autoload
 (defun vundo ()
