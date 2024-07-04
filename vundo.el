@@ -962,7 +962,7 @@ timestamp, if any saved nodes exist."
                                (and (car e) (cdr (vundo-m-undo-list (car e)))))
                              vundo--timestamps))))
           (table (lambda (string pred action)
-		   (if (eq action 'metadata) ; timestamps is pre-sorted
+		   (if (eq action 'metadata) ; timestamps pre-sorted
 		       `(metadata (display-sort-function . ,#'identity))
 		     (complete-with-action action ts-list string pred)))))
      (or (and ts-list
@@ -973,13 +973,13 @@ timestamp, if any saved nodes exist."
          (progn (message "No timestamps found.")
                 (list nil nil)))))
   (if (and (null node) timestamp)
-      (setq node (car (cl-find-if (lambda (x) (equal (cdr x) timestamp)) vundo--timestamps))))
+      (setq node (car (cl-find-if (lambda (x) (equal (cdr x) timestamp))
+                                  vundo--timestamps))))
   (when (and node
-             (or (not timestamp)
-                 (yes-or-no-p
-                  (format "Permanently remove all undo information prior to %s? "
-                          (seconds-to-string
-                           (float-time (time-since timestamp)))))))
+             (yes-or-no-p
+              (format "Permanently remove all undo information prior to %s? "
+                      (if timestamp (format-time-string "%FT%T%z [" timestamp)
+                        "this node"))))
     (setcdr (vundo-m-undo-list node) nil)
     (vundo--refresh-buffer vundo--orig-buffer (current-buffer))
     (when vundo--roll-back-to-this
