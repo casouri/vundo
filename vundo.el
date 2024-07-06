@@ -955,20 +955,27 @@ selected based on its saved timestamp, if any saved nodes exist."
           (ts-list
            (mapcar
             (lambda (entry)
-              (cons (concat (format-time-string "%FT%T%z [" (cdr entry))
-                            (seconds-to-string
-                             (float-time (time-since (cdr entry))))
-                            (let* ((trim-cnt (length (cdr (vundo-m-undo-list (car entry)))))
-                                   (percentage (* 100 (/ (float trim-cnt) undo-cnt))))
-                              (format "] (%d records, %0.1f%%)" trim-cnt percentage)))
-                    entry))
+              (cons (format-time-string "%FT%T%z" (cdr entry)) entry))
             (reverse (seq-filter
                       (lambda (e)       ; anything to remove?
                         (and (car e) (cdr (vundo-m-undo-list (car e)))))
                       vundo--timestamps))))
+          (annotation-function
+           (lambda (time-string)
+             (let* ((entry (alist-get time-string ts-list nil nil #'equal))
+                    (age (seconds-to-string (float-time (time-since (cdr entry)))))
+                    (trim-cnt (length (cdr (vundo-m-undo-list (car entry)))))
+                    (percentage (* 100 (/ (float trim-cnt) undo-cnt)))
+                    (str (format "(%d records, %0.1f%%)" trim-cnt percentage))
+                    (l (length str)))
+               (concat " [" age "]"
+                       (propertize " " 'display
+                                   `(space :align-to (- right ,l)))
+                       str))))
           (table (lambda (string pred action)
 		   (if (eq action 'metadata) ; timestamps pre-sorted
-		       `(metadata (display-sort-function . ,#'identity))
+		       `(metadata (display-sort-function . ,#'identity)
+                                  (annotation-function . ,annotation-function))
 		     (complete-with-action action ts-list string pred)))))
      (or (and ts-list
 	      (let* ((key (completing-read "Trim undo records prior to timestamp: "
@@ -997,7 +1004,7 @@ selected based on its saved timestamp, if any saved nodes exist."
           (setq vundo--roll-back-to-this
                 (vundo--current-node vundo--prev-mod-list))))
     (when (called-interactively-p 'interactive)
-        (message "No undo-list records removed"))))
+      (message "No undo-list records removed"))))
 
 ;;;###autoload
 (defun vundo ()
