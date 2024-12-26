@@ -952,9 +952,10 @@ Consults the alist of TIMESTAMPS.  This moves the overlay
   (run-hooks 'vundo-pre-enter-hook)
   (let ((vundo-buf (vundo-1 (current-buffer))))
     (select-window
-     (display-buffer-in-side-window
+     (display-buffer
       vundo-buf
-      `((side . ,vundo-window-side)
+      `(display-buffer-in-side-window
+        (side . ,vundo-window-side)
         (window-height . 3))))
     (set-window-dedicated-p nil t)
     (let ((window-min-height 3))
