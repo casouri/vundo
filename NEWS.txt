@@ -1,11 +1,26 @@
-TBD
+<2025-03-14 Fri>: Version 2.4.0
+
+New features:
+
+- A new vundo-popup-mode, which shows vundo window in the background
+  when user invokes undo/redo commands.
+
+<2023-02-16 Fri>: Version 2.3.0
+
+New features:
+
+- Navigate among all saved nodes with l and r.
+- Automatically bury the vundo-diff window when vundo quits.
+
+
+<2024-01-01 Mon>: Version 2.2.0
 
 New features:
 
 - Now there’s a new command ‘w’ in the vundo buffer, typing it brings
   you forward to the next branching point.
 
-<2023-12-08 Fri>: Version 2.5.0
+<2023-12-08 Fri>: Version 2.1.0
 
 vundo-diff introduced, providing on-demand diff functionality.  Diff's
 are evaluated between the current node and either its parent node, or,

@@ -48,7 +48,8 @@ in bold. You can type "l" to jump to the last saved node.
 
 Note: vundo.el requires Emacs 28.
 
-Customizable faces:
+Customizable faces
+==================
 
 - vundo-default
 - vundo-node
@@ -76,7 +77,8 @@ to use that font:
 
     (set-face-attribute 'vundo-default nil :family "Symbola")
 
-Diff:
+Diff
+====
 
 Vundo uses Emacs' facilities to provide diffs among arbitrary undo
 states: just (m)ark and (d)iff.  By default, vundo's diff window is
@@ -88,14 +90,25 @@ instructing diff not to print color codes:
 
     (setq diff-switches "-u --color=never")
 
-Comparing to undo-tree:
+Popup mode
+==========
+
+If you enable vundo-popup-mode, the vundo window is displayed in the
+background automatically when you invoke undo/redo commands. This
+popup window is automatically killed after a timeout (default to 3s).
+You can switch to the vundo buffer by simply moving point into it
+before it’s killed.
+
+Comparing to undo-tree
+======================
 
 Vundo doesn’t need to be turned on all the time nor replace the undo
 commands like undo-tree does. Vundo displays the tree horizontally,
 whereas undo-tree displays a tree vertically.  Diff is provided
 on-demand between any nodes.
 
-Tests:
+Tests
+=====
 
 You can run tests by loading test/vundo-test.el and M-x ert RET t RET
 to run those tests interactively, or use the following batch command:
@@ -106,7 +119,10 @@ to run those tests interactively, or use the following batch command:
            -f ert-run-tests-batch-and-exit
 
 
-Changelog (full changelog in NEWS.txt):
+Changelog (full changelog in NEWS.txt)
+======================================
+
+<2025-03-14 Fri>: Version 2.4.0: New vundo-popup-mode.
 
 <2023-02-16 Fri>: Version 2.3.0: navigate among all saved nodes.
 Automatically bury the vundo-diff window when vundo quits.
