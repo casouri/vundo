@@ -120,14 +120,19 @@ nil means to use the default.  Only effects popups created by
   (unless (funcall vundo-prevent-popup-predicate)
     (let ((buffer-read-only buffer-read-only) ;this would be set by `vundo'
           (cb (current-buffer)))
-      (save-selected-window
-        (vundo)
-        (with-current-buffer cb
-          (setq-local vundo-popup-window (selected-window))
-          (funcall
-           (or vundo-remove-popup-win-fun
-               (setq-local vundo-remove-popup-win-fun
-                           (vundo-trigger-delete-popup-win-fun cb)))))))
+      (if (and vundo-popup-window (window-live-p vundo-popup-window))
+          (with-selected-window vundo-popup-window
+            (vundo--refresh-buffer
+             vundo--orig-buffer (current-buffer) 'incremental))
+        (save-selected-window
+          (vundo)
+          (with-current-buffer cb
+            (setq-local vundo-popup-window (selected-window))
+            (funcall
+             (or vundo-remove-popup-win-fun
+                 (setq-local
+                  vundo-remove-popup-win-fun
+                  (vundo-trigger-delete-popup-win-fun cb))))))))
     (let ((window-min-height ;vundo has a hardcoded 3, IMO too much for an auto popup
            (or vundo-popup-window-min-height
                window-min-height)))
