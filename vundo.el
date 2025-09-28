@@ -38,6 +38,7 @@
 ;;   p   to go to the node above
 ;;
 ;;   a   to go back to the last branching point
+;;   w   to go to the beginning of the next stem/branch
 ;;   e   to go forward to the end/tip of the branch
 ;;   l   to go to the last saved node
 ;;   r   to go to the next saved node
@@ -1423,7 +1424,7 @@ For ARG<0, got the last saved node prior to the current node."
 
 (defun vundo-save (arg)
   "Run `save-buffer' with the current buffer Vundo is operating on.
-Accepts the same interactive arfument ARG as ‘save-buffer’."
+Accepts the same interactive argument ARG as ‘save-buffer’."
   (interactive "p")
   (vundo--check-for-command
    (with-current-buffer vundo--orig-buffer
