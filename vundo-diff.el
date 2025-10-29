@@ -47,7 +47,8 @@ If set to \\='kill, the diff buffer will also be killed."
      (:inherit vundo-highlight :foreground "DodgerBlue4"))
     (((background dark)) .
      (:inherit vundo-highlight  :foreground "DodgerBlue1")))
-  "Face for nodes marked for diff in the undo tree.")
+  "Face for nodes marked for diff in the undo tree."
+  :group 'vundo)
 
 (defvar-local vundo-diff--marked-node nil)
 (defvar-local vundo-diff--highlight-overlay nil
