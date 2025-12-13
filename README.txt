@@ -72,10 +72,12 @@ set vundo-glyph-alist by
 
 Your default font needs to contain these Unicode characters, otherwise
 they look terrible and don’t align. You can find a font that covers
-these characters (eg, Symbola, Unifont), and set ‘vundo-default’ face
-to use that font:
+these characters (eg, FiraCode Nerd Font, Unifont), and set ‘vundo-default’
+face to use that font:
 
-    (set-face-attribute 'vundo-default nil :family "Symbola")
+    (set-face-attribute 'vundo-default nil
+                        :font "FiraCode Nerd Font Mono"
+                        :family "FireCode Nerd Font")
 
 Diff
 ====
