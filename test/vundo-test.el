@@ -259,6 +259,19 @@ Sans ending newline."
                  500000)))
    (garbage-collect)))
 
+(ert-deftest vundo-test--goto-last-saved-refresh ()
+  "On stale vundo buffers, goto-last-saved should just refresh."
+  (vundo-test--setup
+   (insert "A") (undo-boundary)
+   (push (cons t (current-time)) buffer-undo-list) (undo-boundary)
+   (insert "B") (undo-boundary)
+   (with-current-buffer (vundo-1 (current-buffer))
+     (with-current-buffer vundo--orig-buffer
+       (goto-char (point-max))
+       (insert "C")
+       (undo-boundary))
+     (should (equal (vundo-goto-last-saved 1) "Refresh")))))
+
 (provide 'vundo-test)
 
 ;;; vundo-test.el ends here
