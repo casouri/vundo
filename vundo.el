@@ -1399,22 +1399,22 @@ If ARG < 0, move forward."
 With numeric prefix ARG, move that many saved nodes back (ARG<0
 moves forward in history)."
   (interactive "p")
-  (if-let* ((cur (vundo--current-node vundo--prev-mod-list))
-            (dest (vundo--find-last-saved cur arg)))
-      (progn
-        (unless (eq cur dest)
-          (vundo--check-for-command
+  (vundo--check-for-command
+   (if-let* ((cur (vundo--current-node vundo--prev-mod-list))
+             (dest (vundo--find-last-saved cur arg)))
+       (progn
+         (unless (eq cur dest)
            (vundo--move-to-node
             cur dest vundo--orig-buffer vundo--prev-mod-list)
            (vundo--trim-undo-list
             vundo--orig-buffer dest vundo--prev-mod-list)
            (vundo--refresh-buffer
-            vundo--orig-buffer (current-buffer) 'incremental)))
-        (message "Node saved %s"
-                 (format-time-string
-                  "%F %r"
-                  (vundo--node-timestamp vundo--prev-mod-list dest))))
-    (message "No such saved node")))
+            vundo--orig-buffer (current-buffer) 'incremental))
+         (message "Node saved %s"
+                  (format-time-string
+                   "%F %r"
+                   (vundo--node-timestamp vundo--prev-mod-list dest))))
+     (message "No such saved node"))))
 
 (defun vundo-goto-next-saved (arg)
   "Go to the ARGth saved node after the current node (default 1).
