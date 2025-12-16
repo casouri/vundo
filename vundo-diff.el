@@ -136,7 +136,8 @@ NODE defaults to the current node."
          (win (and buf (get-buffer-window buf)))
          (kill (eq vundo-diff-quit 'kill)))
     (if win (quit-window kill win)
-      (when (and buf kill) (kill-buffer buf)))))
+      (when (and buf kill) (kill-buffer buf))))
+  (remove-hook 'vundo-post-exit-hook #'vundo-diff--quit))
 
 ;;;###autoload
 (defun vundo-diff ()
