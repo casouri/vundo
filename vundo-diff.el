@@ -139,6 +139,15 @@ NODE defaults to the current node."
       (when (and buf kill) (kill-buffer buf))))
   (remove-hook 'vundo-post-exit-hook #'vundo-diff--quit))
 
+(defun vundo-diff--node-valid-p (node mod-list)
+  "Return non-nil if NODE belongs to MOD-LIST."
+  (and node
+       (let ((idx (vundo-m-idx node)))
+         (and (integerp idx)
+              (<= 0 idx)
+              (< idx (length mod-list))
+              (eq (aref mod-list idx) node)))))
+
 ;;;###autoload
 (defun vundo-diff ()
   "Perform diff between marked and current buffer state.
@@ -148,39 +157,43 @@ the original buffer name."
   ;; We can’t add this hook locally, because the hook runs in the
   ;; original buffer.
   (add-hook 'vundo-post-exit-hook #'vundo-diff--quit 0)
-  (let* ((orig vundo--orig-buffer)
-         (oname (buffer-name orig))
-         (current (vundo--current-node vundo--prev-mod-list))
-         (marked (or vundo-diff--marked-node (vundo-m-parent current)))
-         swapped
-         mrkbuf)
-    (if (or (not current) (not marked) (eq current marked))
-        (message "vundo diff not available.")
-      (setq swapped (> (vundo-m-idx marked) (vundo-m-idx current)))
-      (setq mrkbuf (get-buffer-create
-                    (make-temp-name (concat oname "-vundo-diff-marked"))))
-      (unwind-protect
-          (progn
-            (vundo--check-for-command
+  (vundo--check-for-command
+   (let* ((orig vundo--orig-buffer)
+          (oname (buffer-name orig))
+          (current (vundo--current-node vundo--prev-mod-list))
+          (marked (if (vundo-diff--node-valid-p vundo-diff--marked-node
+                                                vundo--prev-mod-list)
+                      vundo-diff--marked-node
+                    (vundo-diff-unmark)
+                    (and current (vundo-m-parent current))))
+          swapped
+          mrkbuf)
+     (if (or (not current) (not marked) (eq current marked))
+         (message "vundo diff not available.")
+       (setq swapped (> (vundo-m-idx marked) (vundo-m-idx current)))
+       (setq mrkbuf (get-buffer-create
+                     (make-temp-name (concat oname "-vundo-diff-marked"))))
+       (unwind-protect
+           (progn
              (vundo--move-to-node current marked orig vundo--prev-mod-list)
              (with-current-buffer mrkbuf
                (insert-buffer-substring-no-properties orig))
              (vundo--refresh-buffer orig (current-buffer) 'incremental)
              (vundo--move-to-node marked current orig vundo--prev-mod-list)
              (vundo--trim-undo-list orig current vundo--prev-mod-list)
-             (vundo--refresh-buffer orig (current-buffer) 'incremental))
-            (let* ((diff-use-labels nil) ; We let our cleanup handle this.
-                   (a (if swapped current marked))
-                   (b (if swapped marked current))
-                   (abuf (if swapped orig mrkbuf))
-                   (bbuf (if swapped mrkbuf orig))
-                   (dbuf (diff-no-select
-                          abuf bbuf nil t
-                          (get-buffer-create
-                           (concat "*vundo-diff-" oname "*")))))
-              (vundo-diff--cleanup-diff-buffer oname dbuf current a b)
-              (display-buffer dbuf)))
-        (kill-buffer mrkbuf)))))
+             (vundo--refresh-buffer orig (current-buffer) 'incremental)
+             (let* ((diff-use-labels nil) ; We let our cleanup handle this.
+                    (a (if swapped current marked))
+                    (b (if swapped marked current))
+                    (abuf (if swapped orig mrkbuf))
+                    (bbuf (if swapped mrkbuf orig))
+                    (dbuf (diff-no-select
+                           abuf bbuf nil t
+                           (get-buffer-create
+                            (concat "*vundo-diff-" oname "*")))))
+               (vundo-diff--cleanup-diff-buffer oname dbuf current a b)
+               (display-buffer dbuf)))
+         (kill-buffer mrkbuf))))))
 
 (defconst vundo-diff-font-lock-keywords
   `((,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
