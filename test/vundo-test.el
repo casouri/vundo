@@ -10,6 +10,7 @@
 
 (require 'ert)
 (require 'vundo)
+(require 'vundo-diff)
 (require 'subr-x)
 (require 'cl-lib)
 
@@ -271,6 +272,51 @@ Sans ending newline."
        (insert "C")
        (undo-boundary))
      (should (equal (vundo-goto-last-saved 1) "Refresh")))))
+
+(ert-deftest vundo-test--diff-refresh-stale-marked-node ()
+  "`vundo-diff' should refresh and not produce a diff on stale vundo buffer."
+  (vundo-test--setup
+   (insert "A") (undo-boundary)
+   (insert "B") (undo-boundary)
+   (with-current-buffer (vundo-1 (current-buffer))
+     (let* ((oname (buffer-name vundo--orig-buffer))
+            (diff-buf-name (concat "*vundo-diff-" oname "*")))
+       ;; Mark tip (B), move back to (A).
+       (vundo-diff-mark)
+       (vundo-backward 1)
+       ;; Make vundo buffer stale.
+       (with-current-buffer vundo--orig-buffer
+         (push (cons t (current-time)) buffer-undo-list))
+       ;; Ensure we start clean.
+       (when-let ((buf (get-buffer diff-buf-name)))
+         (kill-buffer buf))
+       (should-not (get-buffer diff-buf-name))
+       ;; Make sure entire command is skipped after refresh.
+       (should (equal (vundo-diff) "Refresh"))
+       (should-not (get-buffer diff-buf-name))))))
+
+(ert-deftest vundo-test--diff-stale-marked-node-no-possible-route ()
+  "`vundo-diff' should tolerate stale marked nodes."
+  (vundo-test--setup
+   (insert "A") (undo-boundary)
+   (insert "B") (undo-boundary)
+   (with-current-buffer (vundo-1 (current-buffer))
+     ;; Make vundo buffer stale by editing the original buffer.
+     (with-current-buffer vundo--orig-buffer
+       (let ((inhibit-read-only t))
+         (setq-local buffer-read-only nil)
+         (goto-char (point-max))
+         (insert "C")
+         (undo-boundary)))
+     ;; Mark while stale.
+     (vundo-diff-mark)
+     ;; Run a normal vundo command to trigger refresh.
+     (should (equal (vundo-backward 1) "Refresh"))
+     ;; Should not error.  Regression test -- previously,
+     ;; vundo signalled (error "No possible route").
+     (should-not (condition-case err
+                     (progn (vundo-diff) nil)
+                   (error err))))))
 
 (provide 'vundo-test)
 
