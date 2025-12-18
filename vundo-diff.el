@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; vundo-diff provides simple on-demand diff between arbitray undo
+;; vundo-diff provides simple on-demand diff between arbitrary undo
 ;; states in the vundo tree.
 
 ;;; Code:
@@ -52,7 +52,7 @@ If set to \\='kill, the diff buffer will also be killed."
 
 (defvar-local vundo-diff--marked-node nil)
 (defvar-local vundo-diff--highlight-overlay nil
-  "Overlay used to highlight the selected node.")
+  "Overlay used to highlight the diff-marked node.")
 
 (defun vundo-diff--cleanup-diff-buffer (orig-name buf current from to)
   "Update diff headers in BUF.
@@ -183,11 +183,11 @@ the original buffer name."
 
 (defconst vundo-diff-font-lock-keywords
   `((,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
-          (+ ?\s) ?\((group (or "Parent" "Current")) ?\))
+          (+ blank) ?\((group (or "Parent" "Current")) ?\))
      (1 'diff-index t)
      (2 'vundo-highlight t))
     (,(rx bol (or "---" "+++") (* nonl) "[mod " (group (+ num)) ?\]
-          (+ ?\s) ?\((group "Marked") ?\))
+          (+ blank) ?\((group "Marked") ?\))
      (1 'diff-index t)
      (2 'vundo-diff-highlight t)))
   "Additional font-lock keyword to fontify Parent/Current/Marked.")

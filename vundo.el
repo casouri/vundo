@@ -292,14 +292,14 @@ the user invoked ‘vundo’, before every setup ‘vundo’ does."
   "List of functions to call when exiting vundo.
 This hook runs in the original buffer the user invoked ‘vundo’,
 after all the clean up the exiting function does. Ie, it is the
-very last thing that happens when vundo exists."
+very last thing that happens when vundo exits."
   :type 'hook)
 
 (defcustom vundo-diff-setup-hook nil
   "List of functions to call after creating a diff buffer.
 This hook runs in the ‘vundo-diff’ buffer immediately after it's setup,
 both for new or existing buffers. This may be used to
-manipulate the diff or transform it's contents."
+manipulate the diff or transform its contents."
   :type 'hook)
 
 ;;; Undo list to mod list
@@ -453,7 +453,7 @@ This function is equivalent to (car (vundo--eqv-list-of mod))."
 
 (defun vundo--eqv-merge (mlist)
   "Connect modifications in MLIST to be in the same equivalence list.
-Order is reserved."
+Order is preserved."
   ;; Basically, for MLIST = (A B C), set
   ;; A.prev = nil  A.next = B
   ;; B.prev = A    B.next = C
@@ -485,7 +485,7 @@ order."
 (defun vundo--build-tree (mod-list mod-hash &optional from)
   "Connect equivalent modifications and build the tree in MOD-LIST.
 MOD-HASH maps undo-lists to modifications.
-If FROM non-nil, build from FORM-th modification in MOD-LIST."
+If FROM non-nil, build from FROM-th modification in MOD-LIST."
   (cl-loop
    for m from (or from 0) to (1- (length mod-list))
    for mod = (aref mod-list m)
@@ -521,7 +521,7 @@ If FROM non-nil, build from FORM-th modification in MOD-LIST."
                  ;; this.
                  (cl-assert (not (memq mod children)))
                  (setf (vundo-m-children min-eqv-mod)
-                       ;; We sort in reverse order, ie, later mod
+                       ;; We sort in reverse order, i.e. later mod
                        ;; comes first. Later in `vundo--build-tree' we
                        ;; draw the tree depth-first.
                        (vundo--sort-mod (cons mod children)
@@ -606,7 +606,7 @@ exists."
   "Return a timestamp from MOD-LIST for NODE, if any.
 In addition to undo-based timestamps, this includes the modtime
 of the current buffer (if it has an associated file which is
-unmodified and NO-BUFFER is non-nil)."
+unmodified), unless NO-BUFFER is non-nil."
   (when-let ((master (vundo--master-eqv-mod-of node)))
     (or (alist-get master vundo--timestamps nil nil #'eq)
         (and (eq node (vundo--current-node mod-list))
@@ -881,7 +881,7 @@ This function modifies `vundo--prev-mod-list',
           ;; Build tree.
           (vundo--build-tree mod-list mod-hash
                              (length vundo--prev-mod-list))))
-      
+
       ;; Update cache.
       (setq vundo--prev-mod-list mod-list
             vundo--prev-mod-hash mod-hash
@@ -1244,7 +1244,7 @@ have a route from 3 to 2 (2’->3)."
 
 (defvar vundo-after-undo-functions nil
   "Special hook that runs after `vundo' motions.
-Functions aasigned to this hook are called with one argument: the
+Functions assigned to this hook are called with one argument: the
 original buffer `vundo' operates on.")
 
 (defun vundo-forward (arg)
@@ -1316,12 +1316,12 @@ If ARG < 0, move forward."
 
 (defun vundo--stem-root-p (node)
   "Return non-nil if NODE is the root of a stem."
-  ;; Ie, parent has more than one children.
+  ;; Ie, parent has more than one child.
   (> (length (vundo-m-children (vundo-m-parent node))) 1))
 
 (defun vundo--stem-end-p (node)
   "Return non-nil if NODE is the end of a stem."
-  ;; No children, or more than one children.
+  ;; No children, or more than one child.
   (let ((len (length (vundo-m-children node))))
     (or (> len 1) (eq len 0))))
 
@@ -1331,8 +1331,8 @@ If ARG < 0, move forward."
   (vundo--check-for-command
    (when-let* ((this (vundo--current-node vundo--prev-mod-list))
                (next (vundo-m-parent this)))
-     ;; If NEXT is nil, ie, this node doesn’t have a parent, do
-     ;; nothing.
+     ;; If NEXT is nil, i.e. this node doesn’t have a parent,
+     ;; do nothing.
      (vundo--move-to-node
       this next vundo--orig-buffer vundo--prev-mod-list)
      (setq this next
@@ -1353,8 +1353,8 @@ If ARG < 0, move forward."
   (interactive)
   (vundo--check-for-command
    (when-let* ((this (vundo--current-node vundo--prev-mod-list))
-               ;; If NEXT is nil, ie. this node doesn’t have a child, do
-               ;; nothing.
+               ;; If NEXT is nil, i.e. this node doesn’t have a child,
+               ;; do nothing.
                (next (car (vundo-m-children this))))
      (vundo--move-to-node
       this next vundo--orig-buffer vundo--prev-mod-list)
@@ -1377,8 +1377,8 @@ If ARG < 0, move forward."
   (vundo--check-for-command
    (when-let* ((this (vundo--current-node vundo--prev-mod-list))
                (next (car (vundo-m-children this))))
-     ;; If NEXT is nil, ie, this node doesn’t have a child, do
-     ;; nothing.
+     ;; If NEXT is nil, i.e. this node doesn’t have a child,
+     ;; do nothing.
      (vundo--move-to-node
       this next vundo--orig-buffer vundo--prev-mod-list)
      (setq this next
@@ -1418,7 +1418,7 @@ moves forward in history)."
 
 (defun vundo-goto-next-saved (arg)
   "Go to the ARGth saved node after the current node (default 1).
-For ARG<0, got the last saved node prior to the current node."
+For ARG<0, go to the last saved node prior to the current node."
   (interactive "p")
   (vundo-goto-last-saved (- arg)))
 
@@ -1436,8 +1436,7 @@ Accepts the same interactive argument ARG as ‘save-buffer’."
 ;;; Debug
 
 (defun vundo--setup-test-buffer ()
-  "Setup and pop a testing buffer.
-TYPE is the type of buffer you want."
+  "Setup and pop a testing buffer."
   (interactive)
   (let ((buf (get-buffer "*vundo-test*")))
     (if buf (kill-buffer buf))

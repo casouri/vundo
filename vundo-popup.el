@@ -30,7 +30,7 @@
 ;; vundo as a visual guide.  The popup is not selected and
 ;; automatically closed after a short timeout.
 ;;
-;; TODO: Nothing yet?
+;; TODO: there are no known TODO items currently.
 
 
 ;;; Code:
@@ -50,7 +50,7 @@ Only relevant for popups created automatically when using
 
 (defcustom vundo-popup-window-min-height 1 ;IME a small height is nicer for a popup... 1 works well
   "Overwrites the default window-min-height of the vundo popup window.
-nil means to use the default.  Only effects popups created by
+nil means to use the default.  Only affects popups created by
 `vundo-popup-mode'."
   :type '(choice
           (const  :tag "Use default" nil)
