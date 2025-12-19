@@ -142,6 +142,7 @@ nil means to use the default.  Only affects popups created by
 (define-minor-mode vundo-popup-mode
   "Display a vundo popup when using any ordinary undo command."
   :group 'vundo
+  :global t
   (dolist (cmd vundo-popup-commands)
     (if vundo-popup-mode
         (advice-add cmd :after ;call CMD first: this way undoing in region works out of the box
