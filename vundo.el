@@ -607,7 +607,7 @@ exists."
 In addition to undo-based timestamps, this includes the modtime
 of the current buffer (if it has an associated file which is
 unmodified), unless NO-BUFFER is non-nil."
-  (when-let ((master (vundo--master-eqv-mod-of node)))
+  (when-let* ((master (vundo--master-eqv-mod-of node)))
     (or (alist-get master vundo--timestamps nil nil #'eq)
         (and (eq node (vundo--current-node mod-list))
              (with-current-buffer vundo--orig-buffer
@@ -862,9 +862,9 @@ This function modifies `vundo--prev-mod-list',
       ;; we are generating MOD-LIST from scratch, it will work as
       ;; normal, if we are generating incrementally,
       ;; `vundo--prev-undo-list' holds the untrimmed undo list.
-      (if-let ((new-tail (and vundo--prev-mod-hash
-                              (gethash (vundo--sans-nil undo-list)
-                                       vundo--prev-mod-hash))))
+      (if-let* ((new-tail (and vundo--prev-mod-hash
+                               (gethash (vundo--sans-nil undo-list)
+                                        vundo--prev-mod-hash))))
           ;; a) Removing.
           (setq mod-list (vundo--mod-list-trim vundo--prev-mod-list
                                                (vundo-m-idx new-tail))
@@ -1185,7 +1185,7 @@ This function modifies the content of ORIG-BUFFER."
                                             (aref mod-list dest-idx)))
                      (length planned-undo)
                      (length buffer-undo-list)))
-          (when-let ((win (get-buffer-window)))
+          (when-let* ((win (get-buffer-window)))
             (set-window-point win (point)))))
     (error "No possible route")))
 
@@ -1229,12 +1229,12 @@ have a route from 3 to 2 (2’->3)."
           (vundo--latest-buffer-state mod-list))))
     ;; Find a trim point between latest buffer state and
     ;; current node.
-    (when-let ((possible-trim-point
-                (cl-loop for node in (vundo--eqv-list-of current)
-                         if (>= (vundo-m-idx node)
-                                latest-buffer-state-idx)
-                         return node
-                         finally return nil)))
+    (when-let* ((possible-trim-point
+                 (cl-loop for node in (vundo--eqv-list-of current)
+                          if (>= (vundo-m-idx node)
+                                 latest-buffer-state-idx)
+                          return node
+                          finally return nil)))
       (with-current-buffer buffer
         (setq buffer-undo-list
               (vundo-m-undo-list possible-trim-point)))
