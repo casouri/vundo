@@ -68,7 +68,7 @@ CURRENT node."
                        collect
                        (list (format "[%d]" idx)
                              (format "<%s> [mod %d] (%s)" orig-name idx stat)
-                             (when (consp ts) (format-time-string "%F %r" ts)))))
+                             (when (consp ts) (format-time-string "%F %X" ts)))))
         lim)
     (with-current-buffer buf
       (vundo-diff-mode)
